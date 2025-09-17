@@ -14,8 +14,6 @@ export class Joystick extends Component {
 
     start() {
         this.radius = this.bg.getComponent(UITransform)!.width / 2;
-
-        // Lắng nghe sự kiện cảm ứng
         this.bg.on(Input.EventType.TOUCH_START, this.onTouchStart, this);
         this.bg.on(Input.EventType.TOUCH_MOVE, this.onTouchMove, this);
         this.bg.on(Input.EventType.TOUCH_END, this.onTouchEnd, this);
@@ -29,8 +27,6 @@ export class Joystick extends Component {
     private onTouchMove(event: EventTouch) {
         const loc = event.getUILocation();
         const pos = this.bg.getComponent(UITransform)!.convertToNodeSpaceAR(new Vec3(loc.x, loc.y, 0));
-
-        // Tính vector từ tâm -> vị trí chạm
         let dir = new Vec2(pos.x, pos.y);
         let len = dir.length();
 
