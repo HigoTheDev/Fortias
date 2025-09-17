@@ -1,4 +1,6 @@
 import { _decorator, Component, sp, input, Input, EventKeyboard, KeyCode, Vec2, RigidBody2D } from 'cc';
+import { Joystick } from "db://assets/Scripts/Joystick";
+
 const { ccclass, property } = _decorator;
 
 @ccclass('PlayerController')
