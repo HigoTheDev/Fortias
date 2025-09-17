@@ -64,19 +64,19 @@ export class PlayerController extends Component {
 
     private onKeyDown(event: EventKeyboard) {
         switch (event.keyCode) {
-            case KeyCode.KEY_W: this.moveDir.y = 1; break;
-            case KeyCode.KEY_S: this.moveDir.y = -1; break;
-            case KeyCode.KEY_A: this.moveDir.x = -1; break;
-            case KeyCode.KEY_D: this.moveDir.x = 1; break;
+            case KeyCode.KEY_W: this.moveDirKeyboard.y = 1; break;
+            case KeyCode.KEY_S: this.moveDirKeyboard.y = -1; break;
+            case KeyCode.KEY_A: this.moveDirKeyboard.x = -1; break;
+            case KeyCode.KEY_D: this.moveDirKeyboard.x = 1; break;
         }
     }
 
     private onKeyUp(event: EventKeyboard) {
         switch (event.keyCode) {
             case KeyCode.KEY_W:
-            case KeyCode.KEY_S: this.moveDir.y = 0; break;
+            case KeyCode.KEY_S: this.moveDirKeyboard.y = 0; break;
             case KeyCode.KEY_A:
-            case KeyCode.KEY_D: this.moveDir.x = 0; break;
+            case KeyCode.KEY_D: this.moveDirKeyboard.x = 0; break;
         }
     }
 }
