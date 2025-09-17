@@ -9,6 +9,9 @@ export class CameraFollow extends Component{
     @property
     smoothSpeed: number = 5;
 
+    // @property(Node)
+    // Joystick: Node = null!;
+
     private offset: Vec3 = new Vec3();
 
     start(){
@@ -17,9 +20,9 @@ export class CameraFollow extends Component{
 
     update(deltaTime: number){
         if(!this.target) return;
+        // if(!this.Joystick) return;
 
         let desiredPos = this.target.position.clone().add(this.offset);
-
         let currentPos = this.node.position;
         let smoothPos = new Vec3(
             currentPos.x + (desiredPos.x - currentPos.x) * this.smoothSpeed * deltaTime,
@@ -28,5 +31,6 @@ export class CameraFollow extends Component{
         );
 
         this.node.setPosition(smoothPos);
+        // this.Joystick.setPosition(smoothPos);
     }
 }
