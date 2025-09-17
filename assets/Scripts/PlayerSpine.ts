@@ -25,6 +25,19 @@ export class PlayerController extends Component {
     }
 
     update() {
+        let dir = this.moveDirKeyboard.clone();
+
+        if (this.joystick) {
+            const joyDir = this.joystick.getDirection();
+            dir = dir.add(joyDir);
+        }
+
+        if(dir.length() > 1) {
+            dir = dir.normalize();
+        }
+
+        this.moveDir = dir;
+
         if (this.body) {
             this.body.linearVelocity = new Vec2(this.moveDir.x * this.speed, this.moveDir.y * this.speed);
         }
