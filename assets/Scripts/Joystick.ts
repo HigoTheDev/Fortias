@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, UITransform, EventTouch, Vec2, Vec3, input, Input } from 'cc';
+import { _decorator, Component, Node, UITransform, EventTouch, Vec2, Vec3, Input } from 'cc';
 const { ccclass, property } = _decorator;
 
 @ccclass('Joystick')
@@ -14,19 +14,28 @@ export class Joystick extends Component {
 
     start() {
         this.radius = this.bg.getComponent(UITransform)!.width / 2;
-        this.bg.on(Input.EventType.TOUCH_START, this.onTouchStart, this);
-        this.bg.on(Input.EventType.TOUCH_MOVE, this.onTouchMove, this);
-        this.bg.on(Input.EventType.TOUCH_END, this.onTouchEnd, this);
-        this.bg.on(Input.EventType.TOUCH_CANCEL, this.onTouchEnd, this);
+        this.node.active = false;
+        this.node.parent!.on(Input.EventType.TOUCH_START, this.onTouchStart, this);
+        this.node.parent!.on(Input.EventType.TOUCH_MOVE, this.onTouchMove, this);
+        this.node.parent!.on(Input.EventType.TOUCH_END, this.onTouchEnd, this);
+        this.node.parent!.on(Input.EventType.TOUCH_CANCEL, this.onTouchEnd, this);
     }
 
     private onTouchStart(event: EventTouch) {
-        this.onTouchMove(event);
+        const loc = event.getUILocation();
+        this.node.setWorldPosition(new Vec3(loc.x, loc.y, 0));
+        this.node.active = true;
+        this.handle.setPosition(new Vec3(0,0,0));
+        this.direction = new Vec2(0,0);
     }
 
     private onTouchMove(event: EventTouch) {
+        if (!this.node.active) return;
+
         const loc = event.getUILocation();
-        const pos = this.bg.getComponent(UITransform)!.convertToNodeSpaceAR(new Vec3(loc.x, loc.y, 0));
+        const uiTransform = this.bg.getComponent(UITransform)!;
+        const pos = uiTransform.convertToNodeSpaceAR(new Vec3(loc.x, loc.y, 0));
+
         let dir = new Vec2(pos.x, pos.y);
         let len = dir.length();
 
@@ -35,12 +44,12 @@ export class Joystick extends Component {
         }
 
         this.handle.setPosition(new Vec3(dir.x, dir.y, 0));
-        this.direction = dir.normalize();
+        this.direction = len > 0 ? dir.normalize() : new Vec2(0,0);
     }
 
     private onTouchEnd(event: EventTouch) {
-        this.handle.setPosition(new Vec3(0, 0, 0));
-        this.direction = new Vec2(0, 0);
+        this.node.active = false;
+        this.direction = new Vec2(0,0);
     }
 
     public getDirection(): Vec2 {
