@@ -17,7 +17,7 @@ export class PlayerController extends Component {
     private originalScale: Vec3 = new Vec3(1, 1, 1);
 
     start() {
-        // Nếu quên gán spine trong Inspector thì lấy tự động từ node con
+
         if (!this.spine) {
             this.spine = this.getComponentInChildren(sp.Skeleton)!;
         }
@@ -76,7 +76,7 @@ export class PlayerController extends Component {
     }
 
     update(deltaTime: number) {
-        // Di chuyển
+
         let pos = this.node.position.clone();
         pos.add(new Vec3(
             this._currentSpeed.x * deltaTime,
@@ -85,15 +85,14 @@ export class PlayerController extends Component {
         ));
         this.node.setPosition(pos);
 
-        // Đổi animation
+
         if (this._currentSpeed.x !== 0 || this._currentSpeed.y !== 0) {
-            // Nếu đi lên -> dùng run_90
+
             if (this._currentSpeed.y > 0) {
                 if (this.spine.getCurrent(0)?.animation?.name !== "run_90") {
                     this.spine.setAnimation(0, "run_90", true);
                 }
             }
-            // Các hướng khác -> dùng run
             else {
                 if (this.spine.getCurrent(0)?.animation?.name !== "run") {
                     this.spine.setAnimation(0, "run", true);

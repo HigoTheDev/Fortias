@@ -2,7 +2,7 @@
   "ver": "1.0.27",
   "importer": "image",
   "imported": true,
-  "uuid": "5268b89e-d17c-48bb-8307-8556fb3c96e1",
+  "uuid": "45457f60-5ef1-45f8-b7aa-84236310dcc5",
   "files": [
     ".json",
     ".png"
@@ -10,20 +10,20 @@
   "subMetas": {
     "6c48a": {
       "importer": "texture",
-      "uuid": "5268b89e-d17c-48bb-8307-8556fb3c96e1@6c48a",
-      "displayName": "1009_Fighter",
+      "uuid": "45457f60-5ef1-45f8-b7aa-84236310dcc5@6c48a",
+      "displayName": "Joystick_move",
       "id": "6c48a",
       "name": "texture",
       "userData": {
         "wrapModeS": "clamp-to-edge",
         "wrapModeT": "clamp-to-edge",
+        "imageUuidOrDatabaseUri": "45457f60-5ef1-45f8-b7aa-84236310dcc5",
+        "isUuid": true,
+        "visible": false,
         "minfilter": "linear",
         "magfilter": "linear",
         "mipfilter": "none",
-        "anisotropy": 0,
-        "isUuid": true,
-        "imageUuidOrDatabaseUri": "5268b89e-d17c-48bb-8307-8556fb3c96e1",
-        "visible": false
+        "anisotropy": 0
       },
       "ver": "1.0.22",
       "imported": true,
@@ -34,21 +34,21 @@
     },
     "f9941": {
       "importer": "sprite-frame",
-      "uuid": "5268b89e-d17c-48bb-8307-8556fb3c96e1@f9941",
-      "displayName": "1009_Fighter",
+      "uuid": "45457f60-5ef1-45f8-b7aa-84236310dcc5@f9941",
+      "displayName": "Joystick_move",
       "id": "f9941",
       "name": "spriteFrame",
       "userData": {
         "trimThreshold": 1,
         "rotated": false,
-        "offsetX": -3.5,
-        "offsetY": 54.5,
-        "trimX": 2,
-        "trimY": 2,
-        "width": 245,
-        "height": 143,
-        "rawWidth": 256,
-        "rawHeight": 256,
+        "offsetX": 0,
+        "offsetY": 0,
+        "trimX": 0,
+        "trimY": 0,
+        "width": 188,
+        "height": 188,
+        "rawWidth": 188,
+        "rawHeight": 188,
         "borderTop": 0,
         "borderBottom": 0,
         "borderLeft": 0,
@@ -60,17 +60,17 @@
         "meshType": 0,
         "vertices": {
           "rawPosition": [
-            -122.5,
-            -71.5,
+            -94,
+            -94,
             0,
-            122.5,
-            -71.5,
+            94,
+            -94,
             0,
-            -122.5,
-            71.5,
+            -94,
+            94,
             0,
-            122.5,
-            71.5,
+            94,
+            94,
             0
           ],
           "indexes": [
@@ -82,38 +82,38 @@
             3
           ],
           "uv": [
-            2,
-            254,
-            247,
-            254,
-            2,
-            111,
-            247,
-            111
+            0,
+            188,
+            188,
+            188,
+            0,
+            0,
+            188,
+            0
           ],
           "nuv": [
-            0.0078125,
-            0.43359375,
-            0.96484375,
-            0.43359375,
-            0.0078125,
-            0.9921875,
-            0.96484375,
-            0.9921875
+            0,
+            0,
+            1,
+            0,
+            0,
+            1,
+            1,
+            1
           ],
           "minPos": [
-            -122.5,
-            -71.5,
+            -94,
+            -94,
             0
           ],
           "maxPos": [
-            122.5,
-            71.5,
+            94,
+            94,
             0
           ]
         },
         "isUuid": true,
-        "imageUuidOrDatabaseUri": "5268b89e-d17c-48bb-8307-8556fb3c96e1@6c48a",
+        "imageUuidOrDatabaseUri": "45457f60-5ef1-45f8-b7aa-84236310dcc5@6c48a",
         "atlasUuid": "",
         "trimType": "auto"
       },
@@ -126,13 +126,9 @@
     }
   },
   "userData": {
-    "hasAlpha": true,
     "type": "sprite-frame",
+    "hasAlpha": true,
     "fixAlphaTransparencyArtifacts": false,
-    "redirect": "5268b89e-d17c-48bb-8307-8556fb3c96e1@6c48a",
-    "compressSettings": {
-      "useCompressTexture": true,
-      "presetId": "0attPE055Epbj98A/N6nu6"
-    }
+    "redirect": "45457f60-5ef1-45f8-b7aa-84236310dcc5@6c48a"
   }
 }
