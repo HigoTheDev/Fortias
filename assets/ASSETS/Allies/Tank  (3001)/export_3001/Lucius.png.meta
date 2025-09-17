@@ -2,7 +2,7 @@
   "ver": "1.0.27",
   "importer": "image",
   "imported": true,
-  "uuid": "bd4ee611-a6c1-406d-9296-6551aa656e0c",
+  "uuid": "27295fa1-d673-4fd0-933e-eca6e13548bb",
   "files": [
     ".json",
     ".png"
@@ -10,7 +10,7 @@
   "subMetas": {
     "6c48a": {
       "importer": "texture",
-      "uuid": "bd4ee611-a6c1-406d-9296-6551aa656e0c@6c48a",
+      "uuid": "27295fa1-d673-4fd0-933e-eca6e13548bb@6c48a",
       "displayName": "Lucius",
       "id": "6c48a",
       "name": "texture",
@@ -22,7 +22,7 @@
         "mipfilter": "none",
         "anisotropy": 0,
         "isUuid": true,
-        "imageUuidOrDatabaseUri": "bd4ee611-a6c1-406d-9296-6551aa656e0c",
+        "imageUuidOrDatabaseUri": "27295fa1-d673-4fd0-933e-eca6e13548bb",
         "visible": false
       },
       "ver": "1.0.22",
@@ -37,7 +37,7 @@
     "hasAlpha": true,
     "type": "texture",
     "fixAlphaTransparencyArtifacts": false,
-    "redirect": "bd4ee611-a6c1-406d-9296-6551aa656e0c@6c48a",
+    "redirect": "27295fa1-d673-4fd0-933e-eca6e13548bb@6c48a",
     "compressSettings": {
       "useCompressTexture": true,
       "presetId": "0attPE055Epbj98A/N6nu6"

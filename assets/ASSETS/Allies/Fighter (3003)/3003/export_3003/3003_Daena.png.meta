@@ -2,7 +2,7 @@
   "ver": "1.0.27",
   "importer": "image",
   "imported": true,
-  "uuid": "fb0e77a0-231c-4aff-a915-687761a3ab33",
+  "uuid": "8c07c50f-3136-4933-b51f-dd693fe9cddb",
   "files": [
     ".json",
     ".png"
@@ -10,7 +10,7 @@
   "subMetas": {
     "6c48a": {
       "importer": "texture",
-      "uuid": "fb0e77a0-231c-4aff-a915-687761a3ab33@6c48a",
+      "uuid": "8c07c50f-3136-4933-b51f-dd693fe9cddb@6c48a",
       "displayName": "3003_Daena",
       "id": "6c48a",
       "name": "texture",
@@ -22,7 +22,7 @@
         "mipfilter": "none",
         "anisotropy": 0,
         "isUuid": true,
-        "imageUuidOrDatabaseUri": "fb0e77a0-231c-4aff-a915-687761a3ab33",
+        "imageUuidOrDatabaseUri": "8c07c50f-3136-4933-b51f-dd693fe9cddb",
         "visible": false
       },
       "ver": "1.0.22",
@@ -37,7 +37,7 @@
     "hasAlpha": true,
     "type": "texture",
     "fixAlphaTransparencyArtifacts": false,
-    "redirect": "fb0e77a0-231c-4aff-a915-687761a3ab33@6c48a",
+    "redirect": "8c07c50f-3136-4933-b51f-dd693fe9cddb@6c48a",
     "compressSettings": {
       "useCompressTexture": true,
       "presetId": "0attPE055Epbj98A/N6nu6"
