@@ -14,6 +14,10 @@ export class PlayerController extends Component {
     @property
     speed: number = 200;
 
+    @property(Joystick)
+    joystick: Joystick | null = null;
+
+    private moveDirKeyboard: Vec2 = new Vec2(0, 0);
     private moveDir: Vec2 = new Vec2(0, 0);
     private originalScaleX: number = 1;
 
