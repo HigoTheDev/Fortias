@@ -45,6 +45,9 @@ export class PlayerController extends Component {
     }
 
     update() {
+        if(this.body){
+            this.body.fixedRotation = true;
+        }
         if (this.state == PlayerState.Die) {
             if (this.body) this.body.linearVelocity = new Vec2(0, 0);
             return;
