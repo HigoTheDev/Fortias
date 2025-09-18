@@ -40,7 +40,6 @@ export class PlayerSpine extends Component {
     private state: PlayerState = PlayerState.Idle;
 
     start() {
-        // Add null checks
         if (!this.hpBarNode) {
             console.error("HPBar node not assigned");
             return;
@@ -83,7 +82,7 @@ export class PlayerSpine extends Component {
 
         let dir = new Vec2(0, 0);
 
-        if (this.joystick && this.joystick.isUsingJoystick) {
+        if (this.joystick && this.joystick.isUsingJoystic) {
             dir = this.joystick.getAxis();
         } else {
             dir = this.moveDirKeyboard.clone();
@@ -95,20 +94,17 @@ export class PlayerSpine extends Component {
 
         this.moveDir = dir;
 
-        // áp dụng velocity
         if (this.body) {
             this.tempVec2.set(this.moveDir.x * this.speed, this.moveDir.y * this.speed);
             this.body.linearVelocity = this.tempVec2;
         }
 
-        // xử lý animation
         if (this.moveDir.x !== 0 || this.moveDir.y !== 0) {
             if (this.state !== PlayerState.Run) {
                 this.state = PlayerState.Run;
                 this.spine.setAnimation(0, "run", true);
             }
 
-            // flip hướng
             if (this.moveDir.x > 0) {
                 this.node.setScale(this.originalScaleX, this.node.getScale().y, 1);
             } else if (this.moveDir.x < 0) {

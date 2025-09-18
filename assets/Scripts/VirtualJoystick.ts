@@ -4,11 +4,11 @@ const { ccclass, property } = _decorator;
 
 @ccclass("VirtualJoystick")
 export class VirtualJoystick extends Component implements IInput {
-    @property(CCFloat) private maxDistance: number = 100;
-    @property(Node) private knob: Node = null!;
+    @property(CCFloat) private maxDistance: number = 100;   // bán kính joystick
+    @property(Node) private knob: Node = null!;             // núm điều khiển
 
-    isUsingJoystick: boolean = false;
-    private defaultPosition: Vec2 = new Vec2();
+    isUsingJoystic: boolean = false;
+    private joystickCenter: Vec2 = new Vec2();   // tâm joystick trong screen-space
     public static instance: VirtualJoystick = null;
 
     onLoad() {
@@ -25,64 +25,74 @@ export class VirtualJoystick extends Component implements IInput {
         this.deactivateJoystick();
     }
 
-    // Trả về hướng normalized (-1 -> 1)
+    /** Trả về vector hướng [-1..1] */
     public getAxis(): Vec2 {
-        if (this.isUsingJoystick) {
-            const pos = this.knob.getPosition();
-            return new Vec2(pos.x / this.maxDistance, pos.y / this.maxDistance);
+        if (this.isUsingJoystic) {
+            return new Vec2(
+                this.knob.position.x / this.maxDistance,
+                this.knob.position.y / this.maxDistance
+            );
         }
         return new Vec2();
     }
 
     private activateTouchJoystick(e: EventTouch): void {
         const location = e.getUILocation();
-        const canvasTransform = this.node.parent!.getComponent(UITransform)!;
+        this.activateJoystick(location);
+    }
 
-        // chuyển vị trí click sang local của canvas
-        const localPos = canvasTransform.convertToNodeSpaceAR(new Vec3(location.x, location.y, 0));
-
-        this.isUsingJoystick = true;
+    /** Spawn joystick tại vị trí chạm */
+    private activateJoystick(location: Vec2): void {
+        this.isUsingJoystic = true;
         this.node.active = true;
+        this.getComponent(UIOpacity).opacity = 255;
 
-        // đặt joystick theo vị trí bấm
+        // Lưu lại vị trí joystick center trong screen-space
+        this.joystickCenter = location.clone();
+
+        // Đặt joystick node về local (Canvas)
+        const parentTransform = this.node.parent!.getComponent(UITransform)!;
+        const localPos = parentTransform.convertToNodeSpaceAR(new Vec3(location.x, location.y, 0));
         this.node.setPosition(localPos);
-        this.defaultPosition = new Vec2(localPos.x, localPos.y);
 
-        // reset knob về tâm
+        // Reset knob về tâm
         this.knob.setPosition(new Vec3(0, 0, 0));
     }
 
+    /** Ẩn joystick khi thả tay */
     public deactivateJoystick(): void {
-        this.isUsingJoystick = false;
-        this.node.active = false;  // ẩn joystick
+        this.isUsingJoystic = false;
+        this.getComponent(UIOpacity).opacity = 0;
+        this.node.active = false;
         this.knob.setPosition(new Vec3(0, 0, 0));
     }
 
     private moveKnobTouch(e: EventTouch): void {
-        const location = e.getUILocation();
-        const canvasTransform = this.node.parent!.getComponent(UITransform)!;
-        const localLoc = canvasTransform.convertToNodeSpaceAR(new Vec3(location.x, location.y, 0));
-
-        this.moveKnob(localLoc);
+        this.moveKnob(e.getUILocation());
     }
 
-    private moveKnob(location: Vec3): void {
-        if (!this.isUsingJoystick) return;
+    private moveKnobMouse(e: EventMouse): void {
+        this.moveKnob(e.getUILocation());
+    }
 
-        // vị trí hiện tại - tâm
-        const posDelta: Vec2 = new Vec2(location.x - this.defaultPosition.x, location.y - this.defaultPosition.y);
+    /** Xử lý di chuyển knob */
+    private moveKnob(location: Vec2): void {
+        if (!this.isUsingJoystic) return;
 
-        let x: number = posDelta.x;
-        let y: number = posDelta.y;
+        // delta so với tâm joystick (screen space)
+        const posDelta = location.subtract(this.joystickCenter);
+        let x = posDelta.x;
+        let y = posDelta.y;
 
-        // giới hạn trong vòng tròn maxDistance
-        const length: number = Math.sqrt(x * x + y * y);
+        // Giới hạn bán kính
+        const length = Math.sqrt(x * x + y * y);
         if (length > this.maxDistance) {
-            const multiplier: number = this.maxDistance / length;
+            const multiplier = this.maxDistance / length;
             x *= multiplier;
             y *= multiplier;
         }
 
+        // knob đặt theo local (joystick node), nên OK
         this.knob.setPosition(new Vec3(x, y, 0));
     }
 }
