@@ -1976,7 +1976,7 @@
       "__id__": 146
     },
     "duration": 0.5,
-    "loop": false,
+    "loop": true,
     "simulationSpeed": 1,
     "playOnAwake": true,
     "gravityModifier": {

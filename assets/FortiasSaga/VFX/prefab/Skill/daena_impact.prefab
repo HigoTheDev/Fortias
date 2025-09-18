@@ -1798,7 +1798,7 @@
     "_layer": 33554432,
     "_euler": {
       "__type__": "cc.Vec3",
-      "x": -53.00000000000001,
+      "x": -53,
       "y": 0,
       "z": 0
     },
@@ -2636,6 +2636,8 @@
       "__id__": 0
     },
     "fileId": "c3+XOWfo5IAaa0U3Lwk2lb",
+    "instance": null,
+    "targetOverrides": null,
     "nestedPrefabInstanceRoots": null
   },
   {
@@ -5297,7 +5299,6 @@
       "__id__": 0
     },
     "fileId": "229IhUcA1DJq7pV3H4rOsP",
-    "instance": null,
     "targetOverrides": null
   }
 ]

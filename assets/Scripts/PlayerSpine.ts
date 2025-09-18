@@ -67,7 +67,7 @@ export class PlayerSpine extends Component {
         input.off(Input.EventType.KEY_DOWN, this.onKeyDown, this);
         input.off(Input.EventType.KEY_UP, this.onKeyUp, this);
         if (this.spine) {
-            this.spine.setCompleteListener(null);
+            //this.spine.setCompleteListener(null);
         }
     }
 
@@ -148,7 +148,7 @@ export class PlayerSpine extends Component {
         this.spine.setAnimation(0, "die", false);
 
         // Clear any existing listener first
-        this.spine.setCompleteListener(null);
+        //this.spine.setCompleteListener(null);
         this.spine.setCompleteListener((trackEntry) => {
             if (trackEntry.animation.name === "die") {
                 this.node.destroy();

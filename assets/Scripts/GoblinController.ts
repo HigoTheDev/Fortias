@@ -1,106 +1,97 @@
-import { _decorator, Component, Node, Vec3, input, Input, EventKeyboard, KeyCode, sp } from 'cc';
+import { _decorator, Component, Node, Vec3, math, sp, Collider2D, Contact2DType, IPhysics2DContact } from 'cc';
 const { ccclass, property } = _decorator;
 
-@ccclass('PlayerController')
-export class PlayerController extends Component {
+@ccclass('GoblinController')
+export class GoblinController extends Component {
 
-    @property({
-        type: Number,
-        tooltip: 'Tốc độ di chuyển của nhân vật'
-    })
-    public speed: number = 100;
+    private fences: Node[] = [];
+    private targetFence: Node = null;
+
+    @property
+    private moveSpeed: number = 50;
 
     @property(sp.Skeleton)
     spine: sp.Skeleton = null!;
 
-    private _currentSpeed: Vec3 = new Vec3(0, 0, 0);
+    private isMoving: boolean = true;
     private originalScale: Vec3 = new Vec3(1, 1, 1);
 
     start() {
-
         if (!this.spine) {
             this.spine = this.getComponentInChildren(sp.Skeleton)!;
         }
-
-        this.spine.setAnimation(0, "idle", true);
-
-        input.on(Input.EventType.KEY_DOWN, this.onKeyDown, this);
-        input.on(Input.EventType.KEY_UP, this.onKeyUp, this);
-
+        this.spine.setAnimation(0, "run", true);
         this.originalScale = this.node.getScale();
-    }
 
-    onDestroy() {
-        input.off(Input.EventType.KEY_DOWN, this.onKeyDown, this);
-        input.off(Input.EventType.KEY_UP, this.onKeyUp, this);
-    }
-
-    onKeyDown(event: EventKeyboard) {
-        switch (event.keyCode) {
-            case KeyCode.KEY_W:
-            case KeyCode.ARROW_UP:
-                this._currentSpeed.y = this.speed;
-                break;
-            case KeyCode.KEY_S:
-            case KeyCode.ARROW_DOWN:
-                this._currentSpeed.y = -this.speed;
-                break;
-            case KeyCode.KEY_A:
-            case KeyCode.ARROW_LEFT:
-                this._currentSpeed.x = -this.speed;
-                this.node.setScale(new Vec3(-this.originalScale.x, this.originalScale.y, this.originalScale.z)); // Quay trái
-                break;
-            case KeyCode.KEY_D:
-            case KeyCode.ARROW_RIGHT:
-                this._currentSpeed.x = this.speed;
-                this.node.setScale(new Vec3(this.originalScale.x, this.originalScale.y, this.originalScale.z));  // Quay phải
-                break;
+        const collider = this.getComponent(Collider2D);
+        if (collider) {
+            collider.on(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this);
         }
     }
 
-    onKeyUp(event: EventKeyboard) {
-        switch (event.keyCode) {
-            case KeyCode.KEY_W:
-            case KeyCode.ARROW_UP:
-            case KeyCode.KEY_S:
-            case KeyCode.ARROW_DOWN:
-                this._currentSpeed.y = 0;
-                break;
-            case KeyCode.KEY_A:
-            case KeyCode.ARROW_LEFT:
-            case KeyCode.KEY_D:
-            case KeyCode.ARROW_RIGHT:
-                this._currentSpeed.x = 0;
-                break;
+    setFences(fences: Node[]) {
+        this.fences = fences;
+        this.findNearestFence();
+    }
+
+    findNearestFence() {
+        let nearestDistance = Infinity;
+        this.targetFence = null;
+        for (const fence of this.fences) {
+            if (fence && fence.activeInHierarchy) {
+                const distance = Vec3.distance(this.node.worldPosition, fence.worldPosition);
+                if (distance < nearestDistance) {
+                    nearestDistance = distance;
+                    this.targetFence = fence;
+                }
+            }
         }
     }
 
     update(deltaTime: number) {
+        if (!this.targetFence || !this.targetFence.activeInHierarchy) {
+            this.findNearestFence();
+            if (!this.targetFence) {
+                this.isMoving = false;
+                this.setAnimation();
+                return;
+            }
+        }
+        if (this.isMoving) {
+            const direction = new Vec3();
+            Vec3.subtract(direction, this.targetFence.worldPosition, this.node.worldPosition);
+            if (direction.x > 0) {
+                this.node.setScale(this.originalScale);
+            } else if (direction.x < 0) {
+                this.node.setScale(new Vec3(-this.originalScale.x, this.originalScale.y, this.originalScale.z));
+            }
+            direction.normalize();
+            this.node.translate(direction.multiplyScalar(this.moveSpeed * deltaTime));
+            this.setAnimation(direction.y);
+        }
+    }
 
-        let pos = this.node.position.clone();
-        pos.add(new Vec3(
-            this._currentSpeed.x * deltaTime,
-            this._currentSpeed.y * deltaTime,
-            0
-        ));
-        this.node.setPosition(pos);
+    onBeginContact(selfCollider: Collider2D, otherCollider: Collider2D, contact: IPhysics2DContact | null) {
+        if (otherCollider.node.name.includes("Fence")) {
+            this.isMoving = false;
+            this.setAnimation();
+        }
+    }
 
-
-        if (this._currentSpeed.x !== 0 || this._currentSpeed.y !== 0) {
-
-            if (this._currentSpeed.y > 0) {
+    setAnimation(yDirection: number = 0) {
+        if (!this.isMoving) {
+            if (this.spine.getCurrent(0)?.animation?.name !== "idle") {
+                this.spine.setAnimation(0, "idle", true);
+            }
+        } else {
+            if (yDirection > 0) {
                 if (this.spine.getCurrent(0)?.animation?.name !== "run_90") {
                     this.spine.setAnimation(0, "run_90", true);
                 }
-            }
-            else {
+            } else {
                 if (this.spine.getCurrent(0)?.animation?.name !== "run") {
                     this.spine.setAnimation(0, "run", true);
                 }
-            }
-        } else {
-            if (this.spine.getCurrent(0)?.animation?.name !== "idle") {
-                this.spine.setAnimation(0, "idle", true);
             }
         }
     }
