@@ -1,0 +1,76 @@
+
+1010_Supporter.png
+size: 512,128
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+Folder 15
+  rotate: false
+  xy: 188, 6
+  size: 49, 43
+  orig: 49, 45
+  offset: 0, 0
+  index: -1
+Folder 17
+  rotate: false
+  xy: 239, 37
+  size: 31, 32
+  orig: 32, 32
+  offset: 0, 0
+  index: -1
+Folder 2
+  rotate: false
+  xy: 50, 2
+  size: 33, 30
+  orig: 34, 30
+  offset: 1, 0
+  index: -1
+Folder 4
+  rotate: false
+  xy: 2, 11
+  size: 46, 115
+  orig: 46, 115
+  offset: 0, 0
+  index: -1
+Folder 5
+  rotate: true
+  xy: 205, 71
+  size: 55, 54
+  orig: 55, 54
+  offset: 0, 0
+  index: -1
+Folder 6
+  rotate: true
+  xy: 85, 6
+  size: 26, 47
+  orig: 26, 47
+  offset: 0, 0
+  index: -1
+Folder 7
+  rotate: true
+  xy: 134, 11
+  size: 21, 52
+  orig: 22, 52
+  offset: 1, 0
+  index: -1
+Layer 402 copy 2 Copy
+  rotate: true
+  xy: 165, 51
+  size: 75, 38
+  orig: 75, 38
+  offset: 0, 0
+  index: -1
+axe
+  rotate: false
+  xy: 117, 34
+  size: 46, 92
+  orig: 46, 97
+  offset: 0, 0
+  index: -1
+hoe
+  rotate: false
+  xy: 50, 34
+  size: 65, 92
+  orig: 65, 92
+  offset: 0, 0
+  index: -1

@@ -1,0 +1,82 @@
+{
+  "ver": "2.3.14",
+  "importer": "fbx",
+  "imported": true,
+  "uuid": "49a988c8-b6c0-48c4-a09d-657c0ee8d5ef",
+  "files": [],
+  "subMetas": {
+    "825ed": {
+      "importer": "gltf-mesh",
+      "uuid": "49a988c8-b6c0-48c4-a09d-657c0ee8d5ef@825ed",
+      "displayName": "",
+      "id": "825ed",
+      "name": "Sphere.mesh",
+      "userData": {
+        "gltfIndex": 0,
+        "triangleCount": 544
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "8a835": {
+      "importer": "gltf-scene",
+      "uuid": "49a988c8-b6c0-48c4-a09d-657c0ee8d5ef@8a835",
+      "displayName": "",
+      "id": "8a835",
+      "name": "shockwave.prefab",
+      "userData": {
+        "gltfIndex": 0
+      },
+      "ver": "1.0.14",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    }
+  },
+  "userData": {
+    "imageMetas": [],
+    "fbx": {
+      "smartMaterialEnabled": true
+    },
+    "lods": {
+      "enable": false,
+      "hasBuiltinLOD": false,
+      "options": [
+        {
+          "screenRatio": 0.25,
+          "faceCount": 1
+        },
+        {
+          "screenRatio": 0.125,
+          "faceCount": 0.25
+        },
+        {
+          "screenRatio": 0.01,
+          "faceCount": 0.1
+        }
+      ]
+    },
+    "assetFinder": {
+      "meshes": [
+        "49a988c8-b6c0-48c4-a09d-657c0ee8d5ef@825ed"
+      ],
+      "skeletons": [],
+      "textures": [],
+      "materials": [],
+      "scenes": [
+        "49a988c8-b6c0-48c4-a09d-657c0ee8d5ef@8a835"
+      ]
+    },
+    "meshCompress": {
+      "compress": true,
+      "enable": true
+    }
+  }
+}

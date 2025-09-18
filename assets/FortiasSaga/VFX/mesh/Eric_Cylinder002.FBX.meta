@@ -1,0 +1,150 @@
+{
+  "ver": "2.3.14",
+  "importer": "fbx",
+  "imported": true,
+  "uuid": "da88da11-ec9a-4a6f-a3b0-a03b2016404f",
+  "files": [],
+  "subMetas": {
+    "d9249": {
+      "importer": "gltf-mesh",
+      "uuid": "da88da11-ec9a-4a6f-a3b0-a03b2016404f@d9249",
+      "displayName": "",
+      "id": "d9249",
+      "name": "Eric_Cylinder002.mesh",
+      "userData": {
+        "gltfIndex": 0,
+        "triangleCount": 96
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "a2364": {
+      "importer": "gltf-embeded-image",
+      "uuid": "da88da11-ec9a-4a6f-a3b0-a03b2016404f@a2364",
+      "displayName": "",
+      "id": "a2364",
+      "name": "Map #1.image",
+      "userData": {
+        "gltfIndex": 0,
+        "fixAlphaTransparencyArtifacts": true,
+        "hasAlpha": true,
+        "type": "texture"
+      },
+      "ver": "1.0.3",
+      "imported": true,
+      "files": [
+        ".json",
+        ".png"
+      ],
+      "subMetas": {}
+    },
+    "6e70c": {
+      "importer": "texture",
+      "uuid": "da88da11-ec9a-4a6f-a3b0-a03b2016404f@6e70c",
+      "displayName": "",
+      "id": "6e70c",
+      "name": "Map #1.texture",
+      "userData": {
+        "wrapModeS": "repeat",
+        "wrapModeT": "repeat",
+        "minfilter": "linear",
+        "magfilter": "linear",
+        "mipfilter": "none",
+        "anisotropy": 0,
+        "isUuid": true,
+        "imageUuidOrDatabaseUri": "da88da11-ec9a-4a6f-a3b0-a03b2016404f@a2364"
+      },
+      "ver": "1.0.22",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "f8a20": {
+      "importer": "gltf-material",
+      "uuid": "da88da11-ec9a-4a6f-a3b0-a03b2016404f@f8a20",
+      "displayName": "",
+      "id": "f8a20",
+      "name": "Material #46.material",
+      "userData": {
+        "gltfIndex": 0
+      },
+      "ver": "1.0.14",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "e7aeb": {
+      "importer": "gltf-scene",
+      "uuid": "da88da11-ec9a-4a6f-a3b0-a03b2016404f@e7aeb",
+      "displayName": "",
+      "id": "e7aeb",
+      "name": "Eric_Cylinder002.prefab",
+      "userData": {
+        "gltfIndex": 0
+      },
+      "ver": "1.0.14",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    }
+  },
+  "userData": {
+    "imageMetas": [
+      {
+        "name": "Map #1",
+        "uri": "da88da11-ec9a-4a6f-a3b0-a03b2016404f@a2364"
+      }
+    ],
+    "fbx": {
+      "smartMaterialEnabled": true
+    },
+    "lods": {
+      "enable": false,
+      "hasBuiltinLOD": false,
+      "options": [
+        {
+          "screenRatio": 0.25,
+          "faceCount": 1
+        },
+        {
+          "screenRatio": 0.125,
+          "faceCount": 0.25
+        },
+        {
+          "screenRatio": 0.01,
+          "faceCount": 0.1
+        }
+      ]
+    },
+    "assetFinder": {
+      "meshes": [
+        "da88da11-ec9a-4a6f-a3b0-a03b2016404f@d9249"
+      ],
+      "skeletons": [],
+      "textures": [
+        "da88da11-ec9a-4a6f-a3b0-a03b2016404f@6e70c"
+      ],
+      "materials": [
+        "da88da11-ec9a-4a6f-a3b0-a03b2016404f@f8a20"
+      ],
+      "scenes": [
+        "da88da11-ec9a-4a6f-a3b0-a03b2016404f@e7aeb"
+      ]
+    },
+    "meshCompress": {
+      "enable": true,
+      "compress": true
+    }
+  }
+}

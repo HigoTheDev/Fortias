@@ -1,0 +1,82 @@
+{
+  "ver": "2.3.14",
+  "importer": "fbx",
+  "imported": true,
+  "uuid": "14a7f2e9-5d08-4c80-8ca6-43cdd2c94699",
+  "files": [],
+  "subMetas": {
+    "c244a": {
+      "importer": "gltf-mesh",
+      "uuid": "14a7f2e9-5d08-4c80-8ca6-43cdd2c94699@c244a",
+      "displayName": "",
+      "id": "c244a",
+      "name": "Cylinder.mesh",
+      "userData": {
+        "gltfIndex": 0,
+        "triangleCount": 768
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "532b7": {
+      "importer": "gltf-scene",
+      "uuid": "14a7f2e9-5d08-4c80-8ca6-43cdd2c94699@532b7",
+      "displayName": "",
+      "id": "532b7",
+      "name": "lock.prefab",
+      "userData": {
+        "gltfIndex": 0
+      },
+      "ver": "1.0.14",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    }
+  },
+  "userData": {
+    "imageMetas": [],
+    "fbx": {
+      "smartMaterialEnabled": true
+    },
+    "lods": {
+      "enable": false,
+      "hasBuiltinLOD": false,
+      "options": [
+        {
+          "screenRatio": 0.25,
+          "faceCount": 1
+        },
+        {
+          "screenRatio": 0.125,
+          "faceCount": 0.25
+        },
+        {
+          "screenRatio": 0.01,
+          "faceCount": 0.1
+        }
+      ]
+    },
+    "assetFinder": {
+      "meshes": [
+        "14a7f2e9-5d08-4c80-8ca6-43cdd2c94699@c244a"
+      ],
+      "skeletons": [],
+      "textures": [],
+      "materials": [],
+      "scenes": [
+        "14a7f2e9-5d08-4c80-8ca6-43cdd2c94699@532b7"
+      ]
+    },
+    "meshCompress": {
+      "compress": true,
+      "enable": true
+    }
+  }
+}
