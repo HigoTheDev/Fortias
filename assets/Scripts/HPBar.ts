@@ -9,8 +9,8 @@ export class HPBar extends Component {
     @property(Sprite)
     hpFill: Sprite = null!;
 
-    private maxHP: number = 100;
-    private currentHP: number = 100;
+    private maxHP: number = 4000;
+    private currentHP: number = 4000;
 
     start() {
         this.updateBar();

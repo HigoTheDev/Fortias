@@ -173,7 +173,7 @@
       "__uuid__": "a8596485-c9d9-413d-b9eb-e0953041e7ef",
       "__expectedType__": "sp.SkeletonData"
     },
-    "defaultSkin": "",
+    "defaultSkin": "default",
     "defaultAnimation": "",
     "_premultipliedAlpha": false,
     "_timeScale": 1,
@@ -246,6 +246,7 @@
       "__id__": 11
     },
     "moveSpeed": 50,
+    "damage": 20,
     "spine": null,
     "_id": ""
   },
@@ -266,7 +267,7 @@
       "__id__": 13
     },
     "tag": 0,
-    "_group": 1,
+    "_group": 4,
     "_density": 1,
     "_sensor": false,
     "_friction": 0.2,
@@ -299,10 +300,10 @@
     "__prefab": {
       "__id__": 15
     },
-    "enabledContactListener": false,
+    "enabledContactListener": true,
     "bullet": false,
     "awakeOnLoad": true,
-    "_group": 1,
+    "_group": 4,
     "_type": 2,
     "_allowSleep": true,
     "_gravityScale": 0,
