@@ -1,93 +1,70 @@
-import { _decorator, Component, Prefab, Node, instantiate, Vec3, math } from 'cc';
-import { EnemyManager } from './EnemyManager';
+import { _decorator, Component, Node, Sprite, SpriteFrame, UITransform } from 'cc';
+import { HPBar } from "db://assets/Scripts/HPBar";
 const { ccclass, property } = _decorator;
 
-@ccclass('EnemySpawner')
-export class EnemySpawner extends Component {
+@ccclass('Fence')
+export class Fence extends Component {
+    @property(HPBar)
+    hpBar: HPBar = null!;
 
-    @property({ type: Prefab })
-    enemyPrefab: Prefab = null;
+    @property([Sprite])
+    fenceSprites: Sprite[] = [];
 
-    @property({ type: Node })
-    parentNode: Node = null;
+    @property(SpriteFrame)
+    normalSprite: SpriteFrame = null!;
 
-    @property({ type: EnemyManager })
-    enemyManager: EnemyManager = null;
-
-    @property({ type: Node, tooltip: "Node cha chứa tất cả các hàng rào" })
-    private fenceContainer: Node = null;
-
-    @property
-    spawnInterval: number = 3;
+    @property(SpriteFrame)
+    whiteSprite: SpriteFrame = null!;
 
     @property
-    maxEnemies: number = 10;
+    maxHP: number = 4000;
 
-    @property({ tooltip: "Số quái vật tối thiểu mỗi đợt" })
-    minSpawnGroup: number = 5;
-
-    @property({ tooltip: "Số quái vật tối đa mỗi đợt" })
-    maxSpawnGroup: number = 8;
-
-    private timer: number = 0;
+    private currentHP: number = 4000;
+    private isDestroyed: boolean = false;
+    public static readonly EVENT_DESTROYED = 'fence-destroyed'; // Thêm sự kiện
 
     start() {
-        if (this.enemyManager && this.fenceContainer) {
-            const fences = this.fenceContainer.children;
-            this.enemyManager.setFences(fences);
-        } else {
-            console.error("Lỗi: Vui lòng gán EnemyManager hoặc FenceContainer trong Inspector!");
+        this.currentHP = this.maxHP;
+        if (this.hpBar) {
+            this.hpBar.setMaxHP(this.maxHP);
+            this.hpBar.node.active = false;
         }
     }
 
-    update(deltaTime: number) {
-        this.timer += deltaTime;
-        if (this.timer >= this.spawnInterval) {
-            this.timer = 0;
+    public takeDamage(damage: number) {
+        if (this.isDestroyed) return;
 
-            if (this.enemyManager.getEnemyCount() < this.maxEnemies) {
-                const spawnZones = [
-                    { xMin: 50, xMax: 500, yMin: -5, yMax: 8 },
-                    { xMin: -800, xMax: -380, yMin: 5, yMax: 15 },
-                    { xMin: -160, xMax: -140, yMin: 400, yMax: 700 },
-                    { xMin: -200, xMax: -150, yMin: -500, yMax: -300 }
-                ];
+        this.currentHP -= damage;
 
-                const zone = spawnZones[math.randomRangeInt(0, 4)];
-                const numToSpawn = math.randomRangeInt(this.minSpawnGroup, this.maxSpawnGroup + 1);
+        if (this.hpBar && this.currentHP < this.maxHP) {
+            this.hpBar.node.active = true;
+            this.hpBar.setHP(this.currentHP);
+        }
 
-                for (let i = 0; i < numToSpawn; i++) {
-                    const randomX = math.randomRangeInt(zone.xMin, zone.xMax);
-                    const randomY = math.randomRangeInt(zone.yMin, zone.yMax);
-                    const pos = new Vec3(randomX, randomY, 0);
+        this.flashWhite();
 
-                    const offsetX = math.randomRangeInt(-20, 20);
-                    const offsetY = math.randomRangeInt(-20, 20);
-                    const spawnPos = pos.add(new Vec3(offsetX, offsetY, 0));
+        if (this.currentHP <= 0) {
+            this.destroyFence();
+        }
+    }
 
-                    if (this.enemyManager.getEnemyCount() < this.maxEnemies) {
-                        this.spawnEnemy(spawnPos);
-                    } else {
-                        break;
-                    }
-                }
+    private flashWhite() {
+        if (this.fenceSprites.length === 0 || !this.whiteSprite || !this.normalSprite) return;
+
+        for (let sprite of this.fenceSprites) {
+            sprite.spriteFrame = this.whiteSprite;
+        }
+
+        this.scheduleOnce(() => {
+            for (let sprite of this.fenceSprites) {
+                sprite.spriteFrame = this.normalSprite;
             }
-        }
+        }, 0.1);
     }
 
-    spawnEnemy(position: Vec3) {
-        if(this.enemyPrefab == null) return;
-        const enemy = instantiate(this.enemyPrefab);
-        enemy.setPosition(position);
-
-        if (this.parentNode) {
-            this.parentNode.addChild(enemy);
-        } else {
-            this.node.addChild(enemy);
-        }
-
-        if (this.enemyManager) {
-            this.enemyManager.addEnemy(enemy);
-        }
+    private destroyFence() {
+        this.isDestroyed = true;
+        this.node.emit(Fence.EVENT_DESTROYED, this.node.worldPosition); // Phát sự kiện khi bị phá hủy
+        this.node.destroy();
     }
 }
