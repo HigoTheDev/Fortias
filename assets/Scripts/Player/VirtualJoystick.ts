@@ -4,11 +4,11 @@ const { ccclass, property } = _decorator;
 
 @ccclass("VirtualJoystick")
 export class VirtualJoystick extends Component implements IInput {
-    @property(CCFloat) private maxDistance: number = 100;   // bán kính joystick
-    @property(Node) private knob: Node = null!;             // núm điều khiển
+    @property(CCFloat) private maxDistance: number = 100;
+    @property(Node) private knob: Node = null!;
 
     isUsingJoystic: boolean = false;
-    private joystickCenter: Vec2 = new Vec2();   // tâm joystick trong screen-space
+    private joystickCenter: Vec2 = new Vec2();
     public static instance: VirtualJoystick = null;
 
     onLoad() {
@@ -25,7 +25,6 @@ export class VirtualJoystick extends Component implements IInput {
         this.deactivateJoystick();
     }
 
-    /** Trả về vector hướng [-1..1] */
     public getAxis(): Vec2 {
         if (this.isUsingJoystic) {
             return new Vec2(
@@ -41,25 +40,27 @@ export class VirtualJoystick extends Component implements IInput {
         this.activateJoystick(location);
     }
 
-    /** Spawn joystick tại vị trí chạm */
     private activateJoystick(location: Vec2): void {
         this.isUsingJoystic = true;
         this.node.active = true;
         this.getComponent(UIOpacity).opacity = 255;
+        this.joystickCenter = location;
 
-        // Lưu lại vị trí joystick center trong screen-space
-        this.joystickCenter = location.clone();
+        // chuyển tọa độ màn hình -> local trong Canvas
+        let parentTransform = this.node.parent.getComponent(UITransform);
+        let localPos = parentTransform.convertToNodeSpaceAR(new Vec3(location.x, location.y, 0));
 
-        // Đặt joystick node về local (Canvas)
-        const parentTransform = this.node.parent!.getComponent(UITransform)!;
-        const localPos = parentTransform.convertToNodeSpaceAR(new Vec3(location.x, location.y, 0));
         this.node.setPosition(localPos);
 
-        // Reset knob về tâm
-        this.knob.setPosition(new Vec3(0, 0, 0));
+        // knob reset về giữa joystick
+        if (this.knob) {
+            this.knob.setPosition(new Vec3(0, 0, 0));
+        } else {
+            console.warn("Knob chưa được gán trong Inspector!");
+        }
     }
 
-    /** Ẩn joystick khi thả tay */
+
     public deactivateJoystick(): void {
         this.isUsingJoystic = false;
         this.getComponent(UIOpacity).opacity = 0;
@@ -75,7 +76,6 @@ export class VirtualJoystick extends Component implements IInput {
         this.moveKnob(e.getUILocation());
     }
 
-    /** Xử lý di chuyển knob */
     private moveKnob(location: Vec2): void {
         if (!this.isUsingJoystic) return;
 
