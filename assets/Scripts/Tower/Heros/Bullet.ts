@@ -1,4 +1,4 @@
-import {
+﻿import {
     _decorator,
     Component,
     Vec3,

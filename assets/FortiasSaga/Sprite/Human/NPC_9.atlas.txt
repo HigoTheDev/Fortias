@@ -1,4 +1,4 @@
-
+﻿
 NPC_9.png
 size: 2048, 256
 format: RGBA8888

@@ -1,4 +1,4 @@
-
+﻿
 3004_Gale.png
 size: 2048,256
 format: RGBA8888
