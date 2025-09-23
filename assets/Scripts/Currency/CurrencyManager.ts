@@ -1,5 +1,5 @@
 import { _decorator, Component, Label } from "cc";
-import { CurrencyType } from "./Currency";  // nhớ import
+import { CurrencyType } from "./Currency";
 const { ccclass, property } = _decorator;
 
 @ccclass("CurrencyManager")

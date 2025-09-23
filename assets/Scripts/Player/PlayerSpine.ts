@@ -126,35 +126,46 @@ export class PlayerSpine extends Component {
     }
 
     private collectCurrency(currency: Currency) {
+        if (currency.collected) return;
+        currency.collected = true;
+
         const coinNode = currency.node;
-        if (!coinNode.active) return;
+        const playerPos = this.node.worldPosition.clone();
 
-        coinNode.active = false;
-
-        let targetPos: Vec3;
-        if (currency.type === CurrencyType.Gold) {
-            this.goldOffset += 30;
-            targetPos = new Vec3(0, this.goldOffset, 0);
-            coinNode.setParent(this.stackGold);
-        } else {
-            this.diamondOffset += 30;
-            targetPos = new Vec3(0, this.diamondOffset, 0);
-            coinNode.setParent(this.stackDiamond);
-        }
-
-        coinNode.setWorldPosition(this.node.worldPosition);
-
+        // Bước 1: coin bay về player (world space)
         tween(coinNode)
-            .to(0.3, { position: targetPos }, { easing: "quadOut" })
+            .to(0.2, { worldPosition: playerPos }, { easing: "quadOut" })
             .call(() => {
-                coinNode.active = true;
+                // Bước 2: gắn vào stack và reset local position
+                if (currency.type === CurrencyType.Gold) {
+                    this.goldOffset += 30;
+                    coinNode.setParent(this.stackGold); // Đổi cha
+                    coinNode.setScale(0.5, 0.5, 1);
+                    coinNode.setPosition(new Vec3(0, 0, 0)); // reset trong local
+
+                    // Bước 3: bay lên stack offset
+                    tween(coinNode)
+                        .to(0.3, { position: new Vec3(0, this.goldOffset, 0) }, { easing: "quadOut" })
+                        .start();
+                } else {
+                    this.diamondOffset += 30;
+                    coinNode.setParent(this.stackDiamond);
+                    coinNode.setScale(0.5, 0.5, 1);
+                    coinNode.setPosition(new Vec3(0, 0, 0));
+
+                    tween(coinNode)
+                        .to(0.3, { position: new Vec3(0, this.diamondOffset, 0) }, { easing: "quadOut" })
+                        .start();
+                }
+
+                // Cộng điểm
+                if (this.currencyManager) {
+                    this.currencyManager.addCurrency(currency.type, 1);
+                }
             })
             .start();
-
-        if (this.currencyManager) {
-            this.currencyManager.addCurrency(currency.type, 1); // mỗi coin chỉ +1
-        }
     }
+
 
     // ========== Combat ==========
     public attack() {

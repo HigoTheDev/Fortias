@@ -13,4 +13,6 @@ export class Currency extends Component {
 
     @property
     value: number = 1;
+
+    public collected: boolean = false;
 }
