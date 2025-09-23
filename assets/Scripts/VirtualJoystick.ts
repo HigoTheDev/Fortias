@@ -1,5 +1,5 @@
 import { _decorator, Component, Node, Vec3, input, Input, EventMouse, Vec2, EventTouch, CCFloat, UIOpacity, UITransform } from "cc";
-import { IInput } from "./IInput";
+import {IInput} from "db://assets/Scripts/Player/IInput";
 const { ccclass, property } = _decorator;
 
 @ccclass("VirtualJoystick")

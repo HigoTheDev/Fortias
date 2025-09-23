@@ -20,6 +20,11 @@ export class CurrencyManager extends Component {
         this.updateUI();
     }
 
+    public getDiamond(): number {
+        return this.diamond;
+    }
+
+
     // 👇 hàm mới: dùng chung cho PlayerSpine gọi
     public addCurrency(type: CurrencyType, amount: number) {
         if (type === CurrencyType.Gold) {

@@ -34,7 +34,7 @@ export class PlayerSpine extends Component {
     maxHP: number = 100;
 
     @property(CurrencyManager)
-    currencyManager: CurrencyManager = null!;
+    public currencyManager: CurrencyManager = null!;
 
     @property(Node)
     stackGold: Node = null!;
@@ -138,15 +138,13 @@ export class PlayerSpine extends Component {
             .call(() => {
                 // Bước 2: gắn vào stack và reset local position
                 if (currency.type === CurrencyType.Gold) {
+                    coinNode.setParent(this.stackGold, true);
                     this.goldOffset += 30;
-                    coinNode.setParent(this.stackGold); // Đổi cha
-                    coinNode.setScale(0.5, 0.5, 1);
-                    coinNode.setPosition(new Vec3(0, 0, 0)); // reset trong local
 
-                    // Bước 3: bay lên stack offset
                     tween(coinNode)
                         .to(0.3, { position: new Vec3(0, this.goldOffset, 0) }, { easing: "quadOut" })
                         .start();
+
                 } else {
                     this.diamondOffset += 30;
                     coinNode.setParent(this.stackDiamond);
