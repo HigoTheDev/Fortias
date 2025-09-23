@@ -35,10 +35,23 @@ export class EnemySpawner extends Component {
 
     private timer: number = 0;
 
+    // Giới hạn bản đồ (bạn chỉnh lại theo map của bạn)
+    private mapBounds = {
+        xMin: -1000,
+        xMax: -400,
+        yMin: -800,
+        yMax: 1000
+    };
+
+    // Khoảng cách tối thiểu so với Player (không spawn quá gần)
+    private minDistanceFromPlayer: number = 200;
+
     start() {
         if (this.enemyManager && this.fenceContainer) {
             const fences = this.fenceContainer.children;
-            this.enemyManager.setFences(fences);
+
+            // 🔥 VÔ HIỆU HÓA: Dòng này không còn cần thiết vì Goblin không cần danh sách hàng rào từ trước nữa.
+            // this.enemyManager.setFences(fences);
 
             // Lắng nghe sự kiện phá hủy của tất cả hàng rào
             for (const fence of fences) {
@@ -55,44 +68,34 @@ export class EnemySpawner extends Component {
             this.timer = 0;
 
             if (this.enemyManager.getEnemyCount() < this.maxEnemies) {
-                const spawnZones = [
-                    { xMin: -800, xMax: -380, yMin: 5, yMax: 15 },
-                    { xMin: -700, xMax: -380, yMin: 300, yMax: 840 },
-                    { xMin: -160, xMax: -140, yMin: 400, yMax: 700 },
-                    { xMin: -200, xMax: -150, yMin: -500, yMax: -300 }
-                ];
-                const zone = spawnZones[math.randomRangeInt(0, spawnZones.length)];
-
                 const numToSpawn = math.randomRangeInt(this.minSpawnGroup, this.maxSpawnGroup + 1);
 
-                const specialZone = JSON.stringify({ xMin: -800, xMax: -380, yMin: 5, yMax: 15 });
-                const currentZone = JSON.stringify(zone);
+                for (let i = 0; i < numToSpawn; i++) {
+                    let spawnPos: Vec3;
 
-                if (currentZone === specialZone) {
-                    const startPos = new Vec3(math.randomRangeInt(zone.xMin, zone.xMax), math.randomRangeInt(zone.yMin, zone.yMax), 0);
-                    const separation = 50;
-                    for (let i = 0; i < numToSpawn; i++) {
-                        const spawnPos = new Vec3(startPos.x, startPos.y + i * separation, 0);
-                        if (this.enemyManager.getEnemyCount() < this.maxEnemies) {
-                            this.spawnEnemy(spawnPos);
-                        } else {
-                            break;
-                        }
-                    }
-                } else {
-                    const startPos = new Vec3(math.randomRangeInt(zone.xMin, zone.xMax), math.randomRangeInt(zone.yMin, zone.yMax), 0);
-                    const separation = 50;
-                    for (let i = 0; i < numToSpawn; i++) {
-                        const spawnPos = new Vec3(startPos.x + i * separation, startPos.y, 0);
-                        if (this.enemyManager.getEnemyCount() < this.maxEnemies) {
-                            this.spawnEnemy(spawnPos);
-                        } else {
-                            break;
-                        }
+                    // Lấy vị trí ngẫu nhiên cho đến khi hợp lệ
+                    do {
+                        spawnPos = new Vec3(
+                            math.randomRangeInt(this.mapBounds.xMin, this.mapBounds.xMax),
+                            math.randomRangeInt(this.mapBounds.yMin, this.mapBounds.yMax),
+                            0
+                        );
+                    } while (!this.isValidSpawn(spawnPos));
+
+                    if (this.enemyManager.getEnemyCount() < this.maxEnemies) {
+                        this.spawnEnemy(spawnPos);
+                    } else {
+                        break;
                     }
                 }
             }
         }
+    }
+
+    private isValidSpawn(pos: Vec3): boolean {
+        // TODO: Lấy vị trí thật sự của Player (vd: từ PlayerController)
+        const playerPos = new Vec3(0, 0, 0);
+        return Vec3.distance(pos, playerPos) > this.minDistanceFromPlayer;
     }
 
     spawnEnemy(position: Vec3) {
@@ -120,8 +123,8 @@ export class EnemySpawner extends Component {
             // Lắng nghe sự kiện phá hủy của hàng rào mới
             newFence.on(Fence.EVENT_DESTROYED, this.onFenceDestroyed, this);
 
-            // Cập nhật danh sách hàng rào trong EnemyManager
-            this.enemyManager.setFences(this.fenceContainer.children);
+            // 🔥 VÔ HIỆU HÓA: Dòng này cũng không còn cần thiết.
+            // this.enemyManager.setFences(this.fenceContainer.children);
         }
     }
 }

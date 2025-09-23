@@ -1,24 +1,14 @@
 import { _decorator, Component, Node } from 'cc';
-import { GoblinController } from './GoblinController'; // Sửa từ './Enemy' sang './GoblinController'
+import { GoblinController } from './GoblinController';
 const { ccclass, property } = _decorator;
 
 @ccclass('EnemyManager')
 export class EnemyManager extends Component {
 
     private enemies: Node[] = [];
-    private fences: Node[] = [];
 
-    setFences(fences: Node[]) {
-        this.fences = fences;
-    }
-
-    addEnemy(enemy: Node){
+    addEnemy(enemy: Node) {
         this.enemies.push(enemy);
-
-        const goblinScript = enemy.getComponent(GoblinController);
-        if (goblinScript) {
-            goblinScript.setFences(this.fences);
-        }
 
         enemy.once(Node.EventType.NODE_DESTROYED, () => {
             this.removeEnemy(enemy);
@@ -26,8 +16,14 @@ export class EnemyManager extends Component {
     }
 
     removeEnemy(enemy: Node) {
+        // 🔥 SỬA LỖI: Thêm dòng kiểm tra này để tránh lỗi khi đóng scene
+        // Nếu mảng enemies không tồn tại (đã bị hủy), không làm gì cả.
+        if (!this.enemies) {
+            return;
+        }
+
         const index = this.enemies.indexOf(enemy);
-        if(index !== -1) {
+        if (index !== -1) {
             this.enemies.splice(index, 1);
         }
     }
@@ -37,18 +33,9 @@ export class EnemyManager extends Component {
     }
 
     clearAllEnemies() {
-        for(let enemy of this.enemies) {
+        for (let enemy of this.enemies) {
             enemy.destroy();
         }
         this.enemies = [];
-    }
-
-    commandAllEnemies(action: string) {
-        for(let enemy of this.enemies) {
-            const goblinScript = enemy.getComponent(GoblinController);
-            if (goblinScript) {
-                //goblinScript.doAction(action);
-            }
-        }
     }
 }

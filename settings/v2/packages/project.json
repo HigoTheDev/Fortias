@@ -17,14 +17,24 @@
       {
         "index": 4,
         "name": "Player"
+      },
+      {
+        "index": 5,
+        "name": "DOOR_OBSTACLE"
+      },
+      {
+        "index": 6,
+        "name": "DOOR_TRIGGER"
       }
     ],
     "collisionMatrix": {
-      "0": 1,
+      "0": 17,
       "1": 0,
-      "2": 8,
+      "2": 56,
       "3": 20,
-      "4": 8
+      "4": 109,
+      "5": 20,
+      "6": 16
     }
   }
 }
