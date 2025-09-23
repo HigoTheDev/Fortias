@@ -1,138 +1,146 @@
-import { _decorator, Component, Node, Vec3, tween, Collider2D, Contact2DType, IPhysics2DContact, RigidBody2D, Tween } from 'cc';
+import { _decorator, Component, Node, Vec3, tween, Collider2D, Contact2DType, IPhysics2DContact, Tween, CCString, Color, Sprite } from 'cc';
+
 const { ccclass, property } = _decorator;
 
 @ccclass('DoorController')
 export class DoorController extends Component {
+
+    // --- Thuộc tính Cửa ---
     @property(Node)
     leftDoor: Node = null!;
 
     @property(Node)
     rightDoor: Node = null!;
 
-    @property
-    openDistance: number = 50;
+    @property({ tooltip: "Góc quay khi cửa mở." })
+    openAngle: number = 90;
 
-    @property
+    @property({ tooltip: "Thời gian hoàn thành animation mở/đóng cửa." })
     duration: number = 0.5;
 
-    @property
-    autoCloseDelay: number = 1.0;
+    @property({ type: CCString, tooltip: "Tên (Name) của node Player." })
+    playerName: string = "Fighter";
 
-    private _playerInside: boolean = false;
-    private _playerNode: Node = null!;
-    private _autoCloseTimer: any = null;
+    // 🔥 THÊM MỚI: Thuộc tính máu cho cửa
+    @property({ group: 'Health', tooltip: "Lượng máu tối đa của cửa." })
+    maxHP: number = 200;
+
+    private currentHP: number = 0;
+    private leftDoorSprite: Sprite | null = null;
+    private rightDoorSprite: Sprite | null = null;
+    private originalColor: Color = Color.WHITE.clone();
+
+
+    // --- Biến nội bộ ---
     private _isDoorOpen: boolean = false;
     private _leftDoorTween: Tween<Node> | null = null;
     private _rightDoorTween: Tween<Node> | null = null;
 
     onLoad() {
-        const collider = this.getComponent(Collider2D);
-        if(collider){
-            collider.sensor = true;
+        this.currentHP = this.maxHP;
+
+        // Lấy component Sprite để đổi màu sau này
+        this.leftDoorSprite = this.leftDoor.getComponent(Sprite);
+        this.rightDoorSprite = this.rightDoor.getComponent(Sprite);
+        if (this.leftDoorSprite) {
+            this.originalColor = this.leftDoorSprite.color.clone();
         }
+
+        const collider = this.getComponent(Collider2D);
         if (collider) {
+            collider.sensor = true;
             collider.on(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this);
             collider.on(Contact2DType.END_CONTACT, this.onEndContact, this);
         }
     }
 
-    onBeginContact(selfCollider: Collider2D, otherCollider: Collider2D, contact: IPhysics2DContact | null) {
-        if (otherCollider.node.name === "Fighter") {
-            this._playerNode = otherCollider.node;
-            this._playerInside = true;
+    // 🔥 THÊM MỚI: Hàm nhận sát thương
+    public takeDamage(damage: number) {
+        if (this.currentHP <= 0) return; // Cửa đã hỏng, không nhận thêm sát thương
 
-            // Hủy timer auto-close
-            if (this._autoCloseTimer) {
-                clearTimeout(this._autoCloseTimer);
-                this._autoCloseTimer = null;
-            }
-            
-            // Chỉ mở cửa nếu cửa đang đóng
+        this.currentHP -= damage;
+        console.log(`Cửa nhận ${damage} sát thương, máu còn lại: ${this.currentHP}`);
+
+        // Kích hoạt hiệu ứng chớp trắng
+        this.flashWhite();
+
+        if (this.currentHP <= 0) {
+            this.currentHP = 0;
+            this.destroyDoor();
+        }
+    }
+
+    // 🔥 THÊM MỚI: Hiệu ứng chớp trắng
+    private flashWhite() {
+        if (!this.leftDoorSprite || !this.rightDoorSprite) return;
+
+        // Dừng các tween màu cũ nếu có
+        tween(this.leftDoorSprite).stop();
+        tween(this.rightDoorSprite).stop();
+
+        // Đặt màu thành trắng
+        this.leftDoorSprite.color = Color.WHITE;
+        this.rightDoorSprite.color = Color.WHITE;
+
+        // Dùng tween để chuyển màu về lại như cũ sau 0.1 giây
+        tween(this.leftDoorSprite)
+            .to(0.1, { color: this.originalColor })
+            .start();
+
+        tween(this.rightDoorSprite)
+            .to(0.1, { color: this.originalColor })
+            .start();
+    }
+
+    // 🔥 THÊM MỚI: Hàm phá hủy cửa
+    private destroyDoor() {
+        console.log("Cửa đã bị phá hủy!");
+        // Thêm các hiệu ứng nổ, vỡ vụn tại đây nếu muốn
+        this.node.destroy();
+    }
+
+
+    // --- Logic Mở/Đóng Cửa ---
+    onBeginContact(selfCollider: Collider2D, otherCollider: Collider2D, contact: IPhysics2DContact | null) {
+        // Chỉ phản ứng khi Player (thuộc nhóm PLAYER) đi vào vùng TRIGGER
+        if (otherCollider.group === 2) { // 2 là giá trị mặc định của nhóm PLAYER, bạn có thể thay đổi
             if (!this._isDoorOpen) {
-                this.openDoor();
+                this.openDoor(otherCollider.node);
             }
         }
     }
 
     onEndContact(selfCollider: Collider2D, otherCollider: Collider2D, contact: IPhysics2DContact | null) {
-        if (otherCollider.node.name === "Fighter") {
-            this._playerInside = false;
-
-            // Đặt timer để đóng cửa
-            this._autoCloseTimer = setTimeout(() => {
-                if (!this._playerInside && this._isDoorOpen) {
-                    this.closeDoor();
-                }
-            }, this.autoCloseDelay * 1000);
+        // Chỉ phản ứng khi Player (thuộc nhóm PLAYER) rời khỏi vùng TRIGGER
+        if (otherCollider.group === 2) {
+            if (this.currentHP > 0 && this._isDoorOpen) { // Chỉ đóng khi cửa chưa hỏng
+                this.closeDoor();
+            }
         }
     }
 
-    openDoor() {
-        // Ngăn mở cửa nếu đã mở rồi
-        if (this._isDoorOpen) {
-            return;
-        }
-
-        console.log("Opening door...");
-
-        // Dừng tween hiện tại nếu có
-        this.stopCurrentTweens();
-        
+    openDoor(playerNode: Node) {
+        if (this._isDoorOpen) return;
         this._isDoorOpen = true;
-
-        // Tính toán hướng mở cửa - sử dụng trục X vì cửa đặt dọc
-        const playerPosition = this._playerNode.worldPosition;
+        this.stopCurrentTweens();
+        const playerPosition = playerNode.worldPosition;
         const doorPosition = this.node.worldPosition;
-        const direction = playerPosition.subtract(doorPosition);
-        
-        // Player ở bên trái cửa (X < 0) = inward = true
-        // Player ở bên phải cửa (X > 0) = inward = false  
-        const isInward = direction.x < 0;
-        
-        console.log(`Player X: ${playerPosition.x}, Door X: ${doorPosition.x}, Direction X: ${direction.x}, Open inward: ${isInward}`);
-
-        if (isInward) {
-            // Mở vào trong - player ở bên trái
-            this._leftDoorTween = tween(this.leftDoor)
-                .to(this.duration, { eulerAngles: new Vec3(0, 0, 90) })
-                .start();
-
-            this._rightDoorTween = tween(this.rightDoor)
-                .to(this.duration, { eulerAngles: new Vec3(0, 0, -90) })
-                .start();
+        const isPlayerOnTheLeft = playerPosition.x < doorPosition.x;
+        if (isPlayerOnTheLeft) {
+            this._leftDoorTween = tween(this.leftDoor).to(this.duration, { eulerAngles: new Vec3(0, 0, this.openAngle) }, { easing: 'quadOut' }).start();
+            this._rightDoorTween = tween(this.rightDoor).to(this.duration, { eulerAngles: new Vec3(0, 0, -this.openAngle) }, { easing: 'quadOut' }).start();
         } else {
-            // Mở ra ngoài - player ở bên phải
-            this._leftDoorTween = tween(this.leftDoor)
-                .to(this.duration, { eulerAngles: new Vec3(0, 0, -90) })
-                .start();
-
-            this._rightDoorTween = tween(this.rightDoor)
-                .to(this.duration, { eulerAngles: new Vec3(0, 0, 90) })
-                .start();
+            this._leftDoorTween = tween(this.leftDoor).to(this.duration, { eulerAngles: new Vec3(0, 0, -this.openAngle) }, { easing: 'quadOut' }).start();
+            this._rightDoorTween = tween(this.rightDoor).to(this.duration, { eulerAngles: new Vec3(0, 0, this.openAngle) }, { easing: 'quadOut' }).start();
         }
     }
 
     closeDoor() {
-        // Ngăn đóng cửa nếu đã đóng rồi
-        if (!this._isDoorOpen) {
-            return;
-        }
-
-        console.log("Closing door...");
-
-        // Dừng tween hiện tại nếu có
-        this.stopCurrentTweens();
-
+        if (!this._isDoorOpen) return;
         this._isDoorOpen = false;
-
-        // Đóng cửa về vị trí ban đầu (0 độ)
-        this._leftDoorTween = tween(this.leftDoor)
-            .to(this.duration, { eulerAngles: new Vec3(0, 0, 0) })
-            .start();
-
-        this._rightDoorTween = tween(this.rightDoor)
-            .to(this.duration, { eulerAngles: new Vec3(0, 0, 0) })
-            .start();
+        this.stopCurrentTweens();
+        this._leftDoorTween = tween(this.leftDoor).to(this.duration, { eulerAngles: new Vec3(0, 0, 0) }, { easing: 'quadIn' }).start();
+        this._rightDoorTween = tween(this.rightDoor).to(this.duration, { eulerAngles: new Vec3(0, 0, 0) }, { easing: 'quadIn' }).start();
     }
 
     private stopCurrentTweens() {
@@ -144,14 +152,5 @@ export class DoorController extends Component {
             this._rightDoorTween.stop();
             this._rightDoorTween = null;
         }
-    }
-
-    onDestroy() {
-        if (this._autoCloseTimer) {
-            clearTimeout(this._autoCloseTimer);
-            this._autoCloseTimer = null;
-        }
-        
-        this.stopCurrentTweens();
     }
 }
