@@ -1,4 +1,4 @@
-import { _decorator, Component } from "cc";
+import { _decorator, Component, Enum } from "cc";
 const { ccclass, property } = _decorator;
 
 export enum CurrencyType {
@@ -8,7 +8,7 @@ export enum CurrencyType {
 
 @ccclass("Currency")
 export class Currency extends Component {
-    @property({ type: CurrencyType })
+    @property({ type: Enum(CurrencyType) })
     type: CurrencyType = CurrencyType.Gold;
 
     @property

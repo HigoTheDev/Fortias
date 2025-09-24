@@ -1,7 +1,7 @@
 import { _decorator, Component, sp, input, Input, EventKeyboard, KeyCode, Vec2, RigidBody2D, Node } from 'cc';
 import { VirtualJoystick } from "db://assets/Scripts/VirtualJoystick";
-import { HPBar } from "db://assets/Scripts/HPBar";
-import { GoblinController } from "./GoblinController";
+import {HPBar} from "db://assets/Scripts/Player/HPBar";
+import {GoblinController} from "db://assets/Scripts/Enemies/GoblinController";
 
 const { ccclass, property } = _decorator;
 
