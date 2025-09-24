@@ -1,4 +1,5 @@
-import { _decorator, Component, Node, Vec3, tween, Collider2D, Contact2DType, IPhysics2DContact, Tween, Color, Sprite } from 'cc';
+import { _decorator, Component, Node, Vec3, tween, Collider2D, Contact2DType, IPhysics2DContact, Tween, Color, Sprite, SpriteFrame } from 'cc';
+import { HPBar } from "db://assets/Scripts/Player/HPBar";
 
 const { ccclass, property } = _decorator;
 
@@ -24,30 +25,42 @@ export class DoorController extends Component {
     @property({ tooltip: "Thời gian hoàn thành animation mở/đóng cửa." })
     duration: number = 0.5;
 
+    // --- Thuộc tính HP Bar ---
+    @property(HPBar)
+    hpBar: HPBar = null!;
+
     // --- Thuộc tính Máu ---
     @property({ group: 'Health', tooltip: "Lượng máu tối đa của cửa." })
     maxHP: number = 200;
+
+    // --- Thuộc tính Flash White ---
+    @property({ group: 'Visual', type: SpriteFrame })
+    normalSprite: SpriteFrame = null!;
+
+    @property({ group: 'Visual', type: SpriteFrame })
+    whiteSprite: SpriteFrame = null!;
 
     private currentHP: number = 0;
     private leftDoorSprite: Sprite | null = null;
     private rightDoorSprite: Sprite | null = null;
     private originalColor: Color = Color.WHITE.clone();
+    private isDestroyed: boolean = false;
+    public static readonly EVENT_DESTROYED = 'door-destroyed';
 
     // --- Biến nội bộ ---
     private _isDoorOpen: boolean = false;
     private _leftDoorTween: Tween<Node> | null = null;
     private _rightDoorTween: Tween<Node> | null = null;
 
-    /*start() {
+    start() {
         this.currentHP = this.maxHP;
         if (this.hpBar) {
             this.hpBar.setMaxHP(this.maxHP);
             this.hpBar.node.active = false;
         }
-    }*/
+    }
 
     onLoad() {
-        this.currentHP = this.maxHP;
         this.leftDoorSprite = this.leftDoor.getComponent(Sprite);
         this.rightDoorSprite = this.rightDoor.getComponent(Sprite);
         if (this.leftDoorSprite) {
@@ -69,44 +82,58 @@ export class DoorController extends Component {
     }
 
     public takeDamage(damage: number) {
-        if (this.currentHP <= 0) return;
+        if (this.isDestroyed) return;
 
         this.currentHP -= damage;
 
-        // if (this.hpBar && this.currentHP < this.maxHP) {
-        //     this.hpBar.node.active = true;
-        //     this.hpBar.setHP(this.currentHP);
-        // }
-        //
-        // this.flashWhite();
-        //
-        // if (this.currentHP <= 0) {
-        //     this.destroyDoor();
-        // }
+        if (this.hpBar && this.currentHP < this.maxHP) {
+            this.hpBar.node.active = true;
+            this.hpBar.setHP(this.currentHP);
+        }
+
+        this.flashWhite();
+
+        if (this.currentHP <= 0) {
+            this.destroyDoor();
+        }
     }
 
     private flashWhite() {
         if (!this.leftDoorSprite || !this.rightDoorSprite) return;
 
-        tween(this.leftDoorSprite).stop();
-        tween(this.rightDoorSprite).stop();
-        this.leftDoorSprite.color = Color.WHITE;
-        this.rightDoorSprite.color = Color.WHITE;
+        // Sử dụng sprite frame nếu có, ngược lại sử dụng color tween
+        if (this.whiteSprite && this.normalSprite) {
+            this.leftDoorSprite.spriteFrame = this.whiteSprite;
+            this.rightDoorSprite.spriteFrame = this.whiteSprite;
 
-        tween(this.leftDoorSprite).to(0.1, { color: this.originalColor }).start();
-        tween(this.rightDoorSprite).to(0.1, { color: this.originalColor }).start();
+            this.scheduleOnce(() => {
+                if (this.leftDoorSprite && this.rightDoorSprite) {
+                    this.leftDoorSprite.spriteFrame = this.normalSprite;
+                    this.rightDoorSprite.spriteFrame = this.normalSprite;
+                }
+            }, 0.1);
+        } else {
+            // Fallback to color tween if sprite frames are not set
+            tween(this.leftDoorSprite).stop();
+            tween(this.rightDoorSprite).stop();
+            this.leftDoorSprite.color = Color.WHITE;
+            this.rightDoorSprite.color = Color.WHITE;
+
+            tween(this.leftDoorSprite).to(0.1, { color: this.originalColor }).start();
+            tween(this.rightDoorSprite).to(0.1, { color: this.originalColor }).start();
+        }
     }
 
-    /*private destroyDoor() {
+    private destroyDoor() {
         this.isDestroyed = true;
-        this.node.emit(Door.EVENT_DESTROYED, this.node.worldPosition); // Phát sự kiện khi bị phá hủy
+        this.node.emit(DoorController.EVENT_DESTROYED, this.node.worldPosition);
         this.node.destroy();
-    }*/
+    }
 
     onBeginContact(selfCollider: Collider2D, otherCollider: Collider2D, contact: IPhysics2DContact | null) {
         console.log(`VA CHẠM ĐÃ XẢY RA với: ${otherCollider.node.name}, Group: ${otherCollider.group}`);
         if (otherCollider.group === 16) {
-            if (!this._isDoorOpen) {
+            if (!this._isDoorOpen && !this.isDestroyed) {
                 this.openDoor(otherCollider.node);
             }
         }
@@ -114,14 +141,14 @@ export class DoorController extends Component {
 
     onEndContact(selfCollider: Collider2D, otherCollider: Collider2D, contact: IPhysics2DContact | null) {
         if (otherCollider.group === 16) {
-            if (this.currentHP > 0 && this._isDoorOpen) {
+            if (this.currentHP > 0 && this._isDoorOpen && !this.isDestroyed) {
                 this.closeDoor();
             }
         }
     }
 
     openDoor(playerNode: Node) {
-        if (this._isDoorOpen) return;
+        if (this._isDoorOpen || this.isDestroyed) return;
         this._isDoorOpen = true;
         this.stopCurrentTweens();
         const playerPosition = playerNode.worldPosition;
@@ -136,7 +163,7 @@ export class DoorController extends Component {
     }
 
     closeDoor() {
-        if (!this._isDoorOpen) return;
+        if (!this._isDoorOpen || this.isDestroyed) return;
         this._isDoorOpen = false;
         this.stopCurrentTweens();
         this._leftDoorTween = tween(this.leftDoor).to(this.duration, { eulerAngles: Vec3.ZERO }, { easing: 'quadIn' }).start();
