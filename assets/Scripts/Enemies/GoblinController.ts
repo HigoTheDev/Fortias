@@ -1,9 +1,9 @@
 // GoblinController.ts
 
 import { _decorator, Component, Node, Vec3, sp, Collider2D, Contact2DType, IPhysics2DContact, Color } from 'cc';
-import { PlayerSpine } from './PlayerSpine';
-import { Fence } from './Fence';
-import { DoorController } from './DoorController'; // 🔥 THÊM: Import DoorController
+import {Fence} from "db://assets/Scripts/Props/Fence";
+import {DoorController} from "db://assets/Scripts/Props/DoorController";
+import {PlayerSpine} from "db://assets/Scripts/PlayerSpine";
 
 const { ccclass, property } = _decorator;
 
