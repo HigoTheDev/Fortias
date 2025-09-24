@@ -38,13 +38,13 @@ export class DoorController extends Component {
     private _leftDoorTween: Tween<Node> | null = null;
     private _rightDoorTween: Tween<Node> | null = null;
 
-    start() {
+    /*start() {
         this.currentHP = this.maxHP;
         if (this.hpBar) {
             this.hpBar.setMaxHP(this.maxHP);
             this.hpBar.node.active = false;
         }
-    }
+    }*/
 
     onLoad() {
         this.currentHP = this.maxHP;
@@ -73,16 +73,16 @@ export class DoorController extends Component {
 
         this.currentHP -= damage;
 
-        if (this.hpBar && this.currentHP < this.maxHP) {
-            this.hpBar.node.active = true;
-            this.hpBar.setHP(this.currentHP);
-        }
-
-        this.flashWhite();
-
-        if (this.currentHP <= 0) {
-            this.destroyDoor();
-        }
+        // if (this.hpBar && this.currentHP < this.maxHP) {
+        //     this.hpBar.node.active = true;
+        //     this.hpBar.setHP(this.currentHP);
+        // }
+        //
+        // this.flashWhite();
+        //
+        // if (this.currentHP <= 0) {
+        //     this.destroyDoor();
+        // }
     }
 
     private flashWhite() {
@@ -97,11 +97,11 @@ export class DoorController extends Component {
         tween(this.rightDoorSprite).to(0.1, { color: this.originalColor }).start();
     }
 
-    private destroyDoor() {
+    /*private destroyDoor() {
         this.isDestroyed = true;
         this.node.emit(Door.EVENT_DESTROYED, this.node.worldPosition); // Phát sự kiện khi bị phá hủy
         this.node.destroy();
-    }
+    }*/
 
     onBeginContact(selfCollider: Collider2D, otherCollider: Collider2D, contact: IPhysics2DContact | null) {
         console.log(`VA CHẠM ĐÃ XẢY RA với: ${otherCollider.node.name}, Group: ${otherCollider.group}`);
