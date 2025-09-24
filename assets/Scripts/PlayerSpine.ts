@@ -35,9 +35,11 @@ export class PlayerSpine extends Component {
     @property({ tooltip: "Khoảng cách để bắt đầu tấn công" })
     attackRange: number = 80;
 
-    // 🔥 THÊM: Thêm thuộc tính cho phạm vi tấn công lan (AoE)
     @property({ tooltip: "Phạm vi tấn công lan tỏa" })
     aoeRadius: number = 150;
+
+    @property
+    public damage: number = 50;
 
     private moveDirKeyboard: Vec2 = new Vec2(0, 0);
     private moveDir: Vec2 = new Vec2(0, 0);
@@ -48,8 +50,6 @@ export class PlayerSpine extends Component {
     public hp: number = 100;
     private state: PlayerState = PlayerState.Idle;
 
-    // Các hàm start(), onDestroy(), update(), getClosestEnemy() giữ nguyên
-    // ...
     start() {
         if (!this.hpBarNode) {
             console.error("HPBar node not assigned");
@@ -156,7 +156,6 @@ export class PlayerSpine extends Component {
     }
 
 
-    // 🔥 THAY ĐỔI: Chỉnh sửa hoàn toàn hàm attack
     public attack(triggerEnemy: Node | null) {
         if (this.state === PlayerState.Die) return;
 
