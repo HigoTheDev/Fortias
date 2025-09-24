@@ -60,7 +60,7 @@ export class NPC extends Component {
         if (!player) return;
 
         if (!this.currencyManager) {
-            this.currencyManager = player.currencyManager;
+            //this.currencyManager = player.currencyManager;
         }
 
         console.log("Currency Manager:", this.currencyManager ? "FOUND" : "NOT FOUND");
