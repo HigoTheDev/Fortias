@@ -1,5 +1,5 @@
 import { _decorator, Component, Node, Sprite, SpriteFrame, UITransform } from 'cc';
-import { HPBar } from "db://assets/Scripts/HPBar";
+import {HPBar} from "db://assets/Scripts/Player/HPBar";
 const { ccclass, property } = _decorator;
 
 @ccclass('Fence')
@@ -7,8 +7,10 @@ export class Fence extends Component {
     @property(HPBar)
     hpBar: HPBar = null!;
 
+
     @property([Sprite])
     fenceSprites: Sprite[] = [];
+
 
     @property(SpriteFrame)
     normalSprite: SpriteFrame = null!;

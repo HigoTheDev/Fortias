@@ -1,6 +1,6 @@
 import { _decorator, Component, Prefab, Node, instantiate, Vec3, math } from 'cc';
 import { EnemyManager } from './EnemyManager';
-import { Fence } from './Fence';
+import {Fence} from "db://assets/Scripts/Props/Fence";
 const { ccclass, property } = _decorator;
 
 @ccclass('EnemySpawner')
@@ -66,6 +66,7 @@ export class EnemySpawner extends Component {
         this.timer += deltaTime;
         if (this.timer >= this.spawnInterval) {
             this.timer = 0;
+
 
             if (this.enemyManager.getEnemyCount() < this.maxEnemies) {
                 const numToSpawn = math.randomRangeInt(this.minSpawnGroup, this.maxSpawnGroup + 1);

@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "__type__": "cc.Prefab",
     "_name": "lydia_bullet",
@@ -26,13 +26,10 @@
     "_components": [
       {
         "__id__": 181
-      },
-      {
-        "__id__": 234
       }
     ],
     "_prefab": {
-      "__id__": 236
+      "__id__": 234
     },
     "_lpos": {
       "__type__": "cc.Vec3",
@@ -940,7 +937,7 @@
     },
     "_gpuMaterial": null,
     "_mainTexture": {
-      "__uuid__": "b9ddf213-42bd-4984-9765-7b385e99f39a@6c48a",
+      "__uuid__": "fcabf46a-df0c-41cb-ba94-02637d300e6a@6c48a",
       "__expectedType__": "cc.Texture2D"
     },
     "_useGPU": false,
@@ -3161,27 +3158,6 @@
     },
     "_useGPU": false,
     "_alignSpace": 2
-  },
-  {
-    "__type__": "e9489y8PHZByINSwJR0oztD",
-    "_name": "",
-    "_objFlags": 0,
-    "__editorExtras__": {},
-    "node": {
-      "__id__": 1
-    },
-    "_enabled": true,
-    "__prefab": {
-      "__id__": 235
-    },
-    "collider": null,
-    "maxLifetime": 10,
-    "arcHeight": 100,
-    "_id": ""
-  },
-  {
-    "__type__": "cc.CompPrefabInfo",
-    "fileId": "d6SXLJBRZMhaJ5X34EijTp"
   },
   {
     "__type__": "cc.PrefabInfo",

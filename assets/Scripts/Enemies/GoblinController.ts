@@ -1,9 +1,10 @@
 // GoblinController.ts
 
 import { _decorator, Component, Node, Vec3, sp, Collider2D, Contact2DType, IPhysics2DContact, Color } from 'cc';
-import { PlayerSpine } from './PlayerSpine';
-import { Fence } from './Fence';
-import { DoorController } from './DoorController'; // 🔥 THÊM: Import DoorController
+import {Fence} from "db://assets/Scripts/Props/Fence";
+import {DoorController} from "db://assets/Scripts/Props/DoorController";
+import {PlayerSpine} from "db://assets/Scripts/Player/PlayerSpine";
+
 
 const { ccclass, property } = _decorator;
 
@@ -85,12 +86,16 @@ export class GoblinController extends Component {
             return;
         }
 
-        // 2. Nếu không phải hàng rào, kiểm tra Cửa
-        const doorScript = otherCollider.node.getComponent(DoorController);
-        if (doorScript) {
-            this.isMoving = false;
-            this.targetDoorScript = doorScript;
-            this.startAttackCycle();
+        if (otherCollider.node.name === 'Door_obj') {
+            // Lấy script từ node cha của Door_obj
+            const doorScript = otherCollider.node.parent.getComponent(DoorController);
+            if (doorScript) {
+                console.log("Target is a Door. Starting attack.");
+                this.isMoving = false;
+                this.targetDoorScript = doorScript;
+                this.startAttackCycle();
+                return;
+            }
         }
     }
 
