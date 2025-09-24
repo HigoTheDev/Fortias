@@ -24,6 +24,7 @@ export class PlayerSpine extends Component {
     @property
     speed: number = 200;
 
+
     @property(VirtualJoystick)
     joystick: VirtualJoystick | null = null;
 
