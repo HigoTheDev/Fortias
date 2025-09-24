@@ -248,6 +248,10 @@
     "moveSpeed": 50,
     "damage": 20,
     "spine": null,
+    "rubyPrefab": {
+      "__uuid__": "f6f1318f-14f0-4ccb-b86f-10cd325344e5",
+      "__expectedType__": "cc.Prefab"
+    },
     "_id": ""
   },
   {
