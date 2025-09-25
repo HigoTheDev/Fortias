@@ -3,7 +3,7 @@ import { VirtualJoystick } from "db://assets/Scripts/Player/VirtualJoystick";
 import { HPBar } from "db://assets/Scripts/Player/HPBar";
 import { GoblinController } from "db://assets/Scripts/Enemies/GoblinController";
 import { RubyController } from "db://assets/Scripts/RubyController";
-import { DropZoneController } from "db://assets/Scripts/DropZoneController"; // 🔥 THÊM: Import DropZoneController
+import { DropZoneController } from "db://assets/Scripts/DropZoneController";
 
 const { ccclass, property } = _decorator;
 
@@ -44,8 +44,8 @@ export class PlayerSpine extends Component {
     @property
     public damage: number = 50;
 
-    @property({ type: Node, tooltip: "Node chứa Collider trigger để hút Ruby" })
-    collectionArea: Node = null!;
+    @property({ group: 'Ruby Collection', tooltip: "Bán kính mà Player bắt đầu hút Ruby. Tăng giá trị này để hút xa hơn." })
+    collectionRadius: number = 250;
 
     @property({ group: 'Ruby Collection', tooltip: "Tốc độ Ruby bay về phía người chơi" })
     rubyAttractSpeed: number = 10;
@@ -78,39 +78,35 @@ export class PlayerSpine extends Component {
             this.body.fixedRotation = true;
         }
 
-        // Lắng nghe va chạm của vùng hút Ruby
-        if (this.collectionArea) {
-            const collectorCollider = this.collectionArea.getComponent(Collider2D);
-            if (collectorCollider) {
-                collectorCollider.on(Contact2DType.BEGIN_CONTACT, this.onRubyContact, this);
-            } else {
-                console.error("Node 'collectionArea' cần phải có một component Collider2D.");
-            }
-        }
-
-        // 🔥 THÊM: Lắng nghe va chạm của THÂN THỂ Player (để phát hiện DropZone)
         const mainCollider = this.getComponent(Collider2D);
         if (mainCollider) {
             mainCollider.on(Contact2DType.BEGIN_CONTACT, this.onBodyContact, this);
         }
     }
 
-    // ... (Hàm onDestroy, update, và các hàm khác giữ nguyên)
     update(deltaTime: number) {
-        if (this.state === PlayerState.Die || this.state === PlayerState.Attack) {
+        // Ngừng mọi hành động nếu Player đã chết
+        if (this.state === PlayerState.Die) {
             if (this.body) this.body.linearVelocity = new Vec2(0, 0);
-            this.updateRubyStack(deltaTime); // Vẫn cập nhật ruby stack khi tấn công
             return;
         }
 
-        const enemy = this.getClosestEnemy();
-        if (enemy) {
-            const dist = Vec2.distance( new Vec2(this.node.worldPosition.x, this.node.worldPosition.y), new Vec2(enemy.worldPosition.x, enemy.worldPosition.y));
-            if (dist <= this.attackRange) {
-                this.attack(enemy);
-                return;
+        // Luôn kiểm tra và cập nhật vị trí Ruby
+        this.checkForNearbyRubies();
+        this.updateRubyStack(deltaTime);
+
+        // Tự động tấn công nếu có kẻ địch trong tầm và không đang tấn công
+        if (this.state !== PlayerState.Attack) {
+            const enemy = this.getClosestEnemy();
+            if (enemy) {
+                const dist = Vec2.distance( new Vec2(this.node.worldPosition.x, this.node.worldPosition.y), new Vec2(enemy.worldPosition.x, enemy.worldPosition.y));
+                if (dist <= this.attackRange) {
+                    this.attack(enemy);
+                }
             }
         }
+
+        // --- Logic Di chuyển (luôn được thực thi) ---
         let dir = new Vec2(0, 0);
         if (this.joystick && this.joystick.isUsingJoystic) {
             dir = this.joystick.getAxis();
@@ -119,78 +115,108 @@ export class PlayerSpine extends Component {
         }
         if (dir.length() > 1) dir = dir.normalize();
         this.moveDir = dir;
+
         if (this.body) {
             this.tempVec2.set(this.moveDir.x * this.speed, this.moveDir.y * this.speed);
             this.body.linearVelocity = this.tempVec2;
         }
 
-        if (this.moveDir.x !== 0 || this.moveDir.y !== 0) {
-            if (this.state !== PlayerState.Run) {
-                this.state = PlayerState.Run;
-                this.spine.setAnimation(0, "run", true);
-            }
-            if (this.moveDir.x > 0) { this.node.setScale(this.originalScaleX, this.node.getScale().y, 1);
-            } else if (this.moveDir.x < 0) { this.node.setScale(-this.originalScaleX, this.node.getScale().y, 1); }
-        } else {
-            if (this.state !== PlayerState.Idle) {
-                this.state = PlayerState.Idle;
-                this.spine.setAnimation(0, "idle", true);
+        // --- Logic Animation & Trạng thái ---
+        // Chỉ đổi animation sang "run" hoặc "idle" khi KHÔNG đang tấn công
+        if (this.state !== PlayerState.Attack) {
+            if (this.moveDir.length() > 0) {
+                if (this.state !== PlayerState.Run) {
+                    this.state = PlayerState.Run;
+                    this.spine.setAnimation(0, "run", true);
+                }
+            } else {
+                if (this.state !== PlayerState.Idle) {
+                    this.state = PlayerState.Idle;
+                    this.spine.setAnimation(0, "idle", true);
+                }
             }
         }
-        this.updateRubyStack(deltaTime);
+
+        // --- Logic lật hình (luôn được thực thi) ---
+        if (this.moveDir.x > 0) {
+            this.node.setScale(this.originalScaleX, this.node.getScale().y, 1);
+        } else if (this.moveDir.x < 0) {
+            this.node.setScale(-this.originalScaleX, this.node.getScale().y, 1);
+        }
     }
 
-    // 🔥 THÊM: Hàm xử lý va chạm cho thân thể Player
+    private checkForNearbyRubies() {
+        const allRubies = this.node.scene.getComponentsInChildren(RubyController);
+        if (allRubies.length === 0) return;
+
+        const playerPos = new Vec2(this.node.worldPosition.x, this.node.worldPosition.y);
+
+        for (const ruby of allRubies) {
+            if (ruby.isCollected) {
+                continue;
+            }
+
+            const rubyPos = new Vec2(ruby.node.worldPosition.x, ruby.node.worldPosition.y);
+            const distance = Vec2.distance(playerPos, rubyPos);
+
+            if (distance <= this.collectionRadius) {
+                ruby.isCollected = true;
+                this.collectedRubies.push(ruby.node);
+
+                const rubyBody = ruby.getComponent(RigidBody2D);
+                if (rubyBody) {
+                    rubyBody.enabled = false;
+                }
+            }
+        }
+    }
+
+    // 🔥 SỬA ĐỔI: Hàm này sẽ nhận vào DropZoneController thay vì Node
     private onBodyContact(selfCollider: Collider2D, otherCollider: Collider2D, contact: IPhysics2DContact | null) {
-        // Kiểm tra xem có va chạm với DropZone không
         const dropZone = otherCollider.getComponent(DropZoneController);
-        if (dropZone && dropZone.targetNode) {
-            this.dropOffRubies(dropZone.targetNode);
+        if (dropZone) {
+            this.dropOffRubies(dropZone);
         }
     }
 
-    // 🔥 THÊM: Hàm xử lý đặt Ruby lên bàn
-    private dropOffRubies(targetTable: Node) {
-        // Nếu không có ruby để đặt, hoặc đang trong quá trình đặt rồi thì không làm gì cả
+    // 🔥 SỬA ĐỔI: Toàn bộ logic để xếp Ruby thay vì phá hủy
+    private dropOffRubies(dropZone: DropZoneController) {
         if (this.collectedRubies.length === 0) {
             return;
         }
 
-        const rubiesToDrop = [...this.collectedRubies]; // Sao chép mảng
-        this.collectedRubies = []; // Xóa mảng gốc ngay lập tức để không nhận thêm ruby
-
-        const targetPosition = targetTable.worldPosition;
+        const rubiesToDrop = [...this.collectedRubies];
+        this.collectedRubies = [];
 
         console.log(`Bắt đầu đặt ${rubiesToDrop.length} viên Ruby...`);
 
-        // Tạo hiệu ứng từng viên Ruby bay về phía bàn
         for (let i = 0; i < rubiesToDrop.length; i++) {
             const rubyNode = rubiesToDrop[i];
+
+            // Lấy vị trí tiếp theo từ DropZone
+            const targetPosition = dropZone.getNextPlacementPosition();
+
+            // Vô hiệu hóa script RubyController để nó không còn là "ruby" có thể hút được nữa
+            const rubyScript = rubyNode.getComponent(RubyController);
+            if (rubyScript) {
+                rubyScript.enabled = false;
+            }
+
+            // Tạo hiệu ứng bay đến vị trí trên bàn
             tween(rubyNode)
-                .delay(i * 0.05) // Delay một chút để tạo hiệu ứng nối đuôi nhau
+                .delay(i * 0.05)
                 .to(0.4, { worldPosition: targetPosition }, { easing: 'quadIn' })
                 .call(() => {
-                    // Tại đây bạn có thể thêm logic cộng tiền, cộng điểm
-                    // Ví dụ: this.gold += 10;
-                    console.log("+10 gold from Ruby!");
-                    rubyNode.destroy(); // Hủy viên Ruby sau khi nó bay tới nơi
+                    // Sau khi đến nơi, không phá hủy nó nữa
+                    console.log("Đã đặt 1 viên Ruby lên bàn!");
+                    // Bạn có thể thêm logic cộng tiền/điểm ở đây
                 })
                 .start();
         }
     }
 
-
-    private onRubyContact(selfCollider: Collider2D, otherCollider: Collider2D, contact: IPhysics2DContact | null) {
-        const rubyController = otherCollider.getComponent(RubyController);
-        if (rubyController && this.collectedRubies.indexOf(otherCollider.node) === -1) {
-            this.collectedRubies.push(otherCollider.node);
-            otherCollider.enabled = false;
-        }
-    }
-
     private updateRubyStack(deltaTime: number) {
         if (this.collectedRubies.length === 0) return;
-
         const basePosition = new Vec3(this.node.worldPosition.x + this.rubyStackPosition.x, this.node.worldPosition.y + this.rubyStackPosition.y, this.node.worldPosition.z);
         for (let i = 0; i < this.collectedRubies.length; i++) {
             const rubyNode = this.collectedRubies[i];
@@ -202,7 +228,7 @@ export class PlayerSpine extends Component {
         }
     }
 
-    // ... (Các hàm còn lại giữ nguyên)
+    // --- Các hàm còn lại giữ nguyên ---
     private getClosestEnemy(): Node | null {
         const allEnemies = this.node.scene.getComponentsInChildren(GoblinController);
         const aliveEnemies = allEnemies.filter(enemy => !enemy.isDead);
@@ -220,17 +246,26 @@ export class PlayerSpine extends Component {
         }
         return closest;
     }
+
     public attack(triggerEnemy: Node | null) {
-        if (this.state === PlayerState.Die) return;
+        // Ngăn việc gọi attack liên tục khi đang trong animation attack
+        if (this.state === PlayerState.Die || this.state === PlayerState.Attack) {
+            return;
+        }
+
         this.state = PlayerState.Attack;
-        if (this.body) this.body.linearVelocity = new Vec2(0, 0);
+
+        // Lật mặt về phía kẻ địch khi bắt đầu tấn công
         if (triggerEnemy) {
             const enemyPos = triggerEnemy.worldPosition;
             const playerPos = this.node.worldPosition;
             if (enemyPos.x > playerPos.x) { this.node.setScale(this.originalScaleX, this.node.getScale().y, 1);
             } else { this.node.setScale(-this.originalScaleX, this.node.getScale().y, 1); }
         }
+
         this.spine.setAnimation(0, "attack_melee_1", false);
+
+        // Logic AoE giữ nguyên
         const allEnemies = this.node.scene.getComponentsInChildren(GoblinController);
         const aliveEnemies = allEnemies.filter(e => !e.isDead);
         const playerPos = new Vec2(this.node.worldPosition.x, this.node.worldPosition.y);
@@ -241,50 +276,20 @@ export class PlayerSpine extends Component {
                 enemyComp.die();
             }
         }
+
+        // Xử lý sau khi animation tấn công kết thúc
         this.spine.setCompleteListener(null);
         this.spine.setCompleteListener((trackEntry) => {
             if (trackEntry.animation.name === "attack_melee_1") {
+                // Đặt lại trạng thái là Idle. Hàm update ở frame tiếp theo
+                // sẽ tự động chuyển sang Run nếu người chơi đang di chuyển.
                 this.state = PlayerState.Idle;
-                this.spine.setAnimation(0, "idle", true);
             }
         });
     }
-    public die() {
-        if (this.state === PlayerState.Die) return;
-        this.state = PlayerState.Die;
-        this.hp = 0;
-        if (this.body) this.body.linearVelocity = new Vec2(0, 0);
-        this.spine.setAnimation(0, "die", false);
-        this.spine.setCompleteListener((trackEntry) => {
-            if (trackEntry.animation.name === "die") {
-                this.node.destroy();
-            }
-        });
-    }
-    public takeDamage(dmg: number) {
-        if (this.state === PlayerState.Die) return;
-        this.hp -= dmg;
-        this.hp = Math.max(0, this.hp);
-        this.hpBar.setHP(this.hp);
-        if (this.hp <= 0) this.die();
-    }
-    private onKeyDown(event: EventKeyboard) {
-        switch (event.keyCode) {
-            case KeyCode.KEY_W: this.moveDirKeyboard.y = 1; break;
-            case KeyCode.KEY_S: this.moveDirKeyboard.y = -1; break;
-            case KeyCode.KEY_A: this.moveDirKeyboard.x = -1; break;
-            case KeyCode.KEY_D: this.moveDirKeyboard.x = 1; break;
-            case KeyCode.SPACE: this.attack(this.getClosestEnemy()); break;
-            case KeyCode.KEY_P: this.die(); break;
-            case KeyCode.KEY_L: this.takeDamage(50); break;
-        }
-    }
-    private onKeyUp(event: EventKeyboard) {
-        switch (event.keyCode) {
-            case KeyCode.KEY_W: if (this.moveDirKeyboard.y > 0) this.moveDirKeyboard.y = 0; break;
-            case KeyCode.KEY_S: if (this.moveDirKeyboard.y < 0) this.moveDirKeyboard.y = 0; break;
-            case KeyCode.KEY_A: if (this.moveDirKeyboard.x < 0) this.moveDirKeyboard.x = 0; break;
-            case KeyCode.KEY_D: if (this.moveDirKeyboard.x > 0) this.moveDirKeyboard.x = 0; break;
-        }
-    }
+
+    public die() { if (this.state === PlayerState.Die) return; this.state = PlayerState.Die; this.hp = 0; if (this.body) this.body.linearVelocity = new Vec2(0, 0); this.spine.setAnimation(0, "die", false); this.spine.setCompleteListener((trackEntry) => { if (trackEntry.animation.name === "die") { this.node.destroy(); } }); }
+    public takeDamage(dmg: number) { if (this.state === PlayerState.Die) return; this.hp -= dmg; this.hp = Math.max(0, this.hp); if (this.hp <= 0) this.die(); }
+    private onKeyDown(event: EventKeyboard) { switch (event.keyCode) { case KeyCode.KEY_W: this.moveDirKeyboard.y = 1; break; case KeyCode.KEY_S: this.moveDirKeyboard.y = -1; break; case KeyCode.KEY_A: this.moveDirKeyboard.x = -1; break; case KeyCode.KEY_D: this.moveDirKeyboard.x = 1; break; case KeyCode.SPACE: this.attack(this.getClosestEnemy()); break; case KeyCode.KEY_P: this.die(); break; case KeyCode.KEY_L: this.takeDamage(50); break; } }
+    private onKeyUp(event: EventKeyboard) { switch (event.keyCode) { case KeyCode.KEY_W: if (this.moveDirKeyboard.y > 0) this.moveDirKeyboard.y = 0; break; case KeyCode.KEY_S: if (this.moveDirKeyboard.y < 0) this.moveDirKeyboard.y = 0; break; case KeyCode.KEY_A: if (this.moveDirKeyboard.x < 0) this.moveDirKeyboard.x = 0; break; case KeyCode.KEY_D: if (this.moveDirKeyboard.x > 0) this.moveDirKeyboard.x = 0; break; } }
 }
