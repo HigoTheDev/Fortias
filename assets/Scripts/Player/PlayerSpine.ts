@@ -85,17 +85,14 @@ export class PlayerSpine extends Component {
     }
 
     update(deltaTime: number) {
-        // Ngừng mọi hành động nếu Player đã chết
         if (this.state === PlayerState.Die) {
             if (this.body) this.body.linearVelocity = new Vec2(0, 0);
             return;
         }
 
-        // Luôn kiểm tra và cập nhật vị trí Ruby
         this.checkForNearbyRubies();
         this.updateRubyStack(deltaTime);
 
-        // Tự động tấn công nếu có kẻ địch trong tầm và không đang tấn công
         if (this.state !== PlayerState.Attack) {
             const enemy = this.getClosestEnemy();
             if (enemy) {
@@ -106,7 +103,6 @@ export class PlayerSpine extends Component {
             }
         }
 
-        // --- Logic Di chuyển (luôn được thực thi) ---
         let dir = new Vec2(0, 0);
         if (this.joystick && this.joystick.isUsingJoystic) {
             dir = this.joystick.getAxis();
@@ -121,8 +117,6 @@ export class PlayerSpine extends Component {
             this.body.linearVelocity = this.tempVec2;
         }
 
-        // --- Logic Animation & Trạng thái ---
-        // Chỉ đổi animation sang "run" hoặc "idle" khi KHÔNG đang tấn công
         if (this.state !== PlayerState.Attack) {
             if (this.moveDir.length() > 0) {
                 if (this.state !== PlayerState.Run) {
@@ -137,7 +131,6 @@ export class PlayerSpine extends Component {
             }
         }
 
-        // --- Logic lật hình (luôn được thực thi) ---
         if (this.moveDir.x > 0) {
             this.node.setScale(this.originalScaleX, this.node.getScale().y, 1);
         } else if (this.moveDir.x < 0) {
@@ -171,7 +164,6 @@ export class PlayerSpine extends Component {
         }
     }
 
-    // 🔥 SỬA ĐỔI: Hàm này sẽ nhận vào DropZoneController thay vì Node
     private onBodyContact(selfCollider: Collider2D, otherCollider: Collider2D, contact: IPhysics2DContact | null) {
         const dropZone = otherCollider.getComponent(DropZoneController);
         if (dropZone) {
@@ -179,7 +171,9 @@ export class PlayerSpine extends Component {
         }
     }
 
-    // 🔥 SỬA ĐỔI: Toàn bộ logic để xếp Ruby thay vì phá hủy
+    /**
+     * 🔥 SỬA LẠI HÀM NÀY 🔥
+     */
     private dropOffRubies(dropZone: DropZoneController) {
         if (this.collectedRubies.length === 0) {
             return;
@@ -188,28 +182,21 @@ export class PlayerSpine extends Component {
         const rubiesToDrop = [...this.collectedRubies];
         this.collectedRubies = [];
 
-        console.log(`Bắt đầu đặt ${rubiesToDrop.length} viên Ruby...`);
-
         for (let i = 0; i < rubiesToDrop.length; i++) {
             const rubyNode = rubiesToDrop[i];
-
-            // Lấy vị trí tiếp theo từ DropZone
             const targetPosition = dropZone.getNextPlacementPosition();
-
-            // Vô hiệu hóa script RubyController để nó không còn là "ruby" có thể hút được nữa
             const rubyScript = rubyNode.getComponent(RubyController);
             if (rubyScript) {
                 rubyScript.enabled = false;
             }
 
-            // Tạo hiệu ứng bay đến vị trí trên bàn
             tween(rubyNode)
                 .delay(i * 0.05)
                 .to(0.4, { worldPosition: targetPosition }, { easing: 'quadIn' })
                 .call(() => {
-                    // Sau khi đến nơi, không phá hủy nó nữa
-                    console.log("Đã đặt 1 viên Ruby lên bàn!");
-                    // Bạn có thể thêm logic cộng tiền/điểm ở đây
+                    // SAU KHI ĐẶT XUỐNG, GỌI HÀM CỦA DROPZONE ĐỂ ĐĂNG KÝ
+                    dropZone.registerPlacedRuby(rubyNode);
+                    console.log("Đã đặt và đăng ký 1 viên Ruby với bàn!");
                 })
                 .start();
         }
@@ -228,7 +215,6 @@ export class PlayerSpine extends Component {
         }
     }
 
-    // --- Các hàm còn lại giữ nguyên ---
     private getClosestEnemy(): Node | null {
         const allEnemies = this.node.scene.getComponentsInChildren(GoblinController);
         const aliveEnemies = allEnemies.filter(enemy => !enemy.isDead);
@@ -248,14 +234,12 @@ export class PlayerSpine extends Component {
     }
 
     public attack(triggerEnemy: Node | null) {
-        // Ngăn việc gọi attack liên tục khi đang trong animation attack
         if (this.state === PlayerState.Die || this.state === PlayerState.Attack) {
             return;
         }
 
         this.state = PlayerState.Attack;
 
-        // Lật mặt về phía kẻ địch khi bắt đầu tấn công
         if (triggerEnemy) {
             const enemyPos = triggerEnemy.worldPosition;
             const playerPos = this.node.worldPosition;
@@ -265,7 +249,6 @@ export class PlayerSpine extends Component {
 
         this.spine.setAnimation(0, "attack_melee_1", false);
 
-        // Logic AoE giữ nguyên
         const allEnemies = this.node.scene.getComponentsInChildren(GoblinController);
         const aliveEnemies = allEnemies.filter(e => !e.isDead);
         const playerPos = new Vec2(this.node.worldPosition.x, this.node.worldPosition.y);
@@ -277,12 +260,9 @@ export class PlayerSpine extends Component {
             }
         }
 
-        // Xử lý sau khi animation tấn công kết thúc
         this.spine.setCompleteListener(null);
         this.spine.setCompleteListener((trackEntry) => {
             if (trackEntry.animation.name === "attack_melee_1") {
-                // Đặt lại trạng thái là Idle. Hàm update ở frame tiếp theo
-                // sẽ tự động chuyển sang Run nếu người chơi đang di chuyển.
                 this.state = PlayerState.Idle;
             }
         });
