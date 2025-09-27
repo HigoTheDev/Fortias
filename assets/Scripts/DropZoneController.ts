@@ -11,32 +11,38 @@ export class DropZoneController extends Component {
     })
     public activeColor: Color = Color.GREEN;
 
-    // 🔥 BỎ: Không cần thuộc tính Sprite ở đây nữa
-    // @property({ type: Sprite, ... })
-    // public zoneSprite: Sprite = null!;
+    @property({
+        group: 'Ruby Placement',
+        tooltip: "Vị trí của cột Ruby đầu tiên, tính từ tâm của DropZone."
+    })
+    public column1_Offset: Vec3 = new Vec3(-30, 10, 0);
 
-    @property({ group: 'Ruby Placement', tooltip: "Vị trí của cột Ruby đầu tiên, tính từ tâm của DropZone."})
-    public column1_Offset: Vec3 = new Vec3(-30, 50, 0);
+    @property({
+        group: 'Ruby Placement',
+        tooltip: "Vị trí của cột Ruby thứ hai, tính từ tâm của DropZone."
+    })
+    public column2_Offset: Vec3 = new Vec3(30, 10, 0);
 
-    @property({ group: 'Ruby Placement', tooltip: "Vị trí của cột Ruby thứ hai, tính từ tâm của DropZone."})
-    public column2_Offset: Vec3 = new Vec3(30, 50, 0);
-
-    @property({ group: 'Ruby Placement', tooltip: "Khoảng cách giữa các viên Ruby trong một cột."})
+    @property({
+        group: 'Ruby Placement',
+        tooltip: "Khoảng cách giữa các viên Ruby trong một cột."
+    })
     public rubySpacing: number = 10;
 
-    private sprite: Sprite = null!; // 🔥 THÊM: Biến sprite nội bộ
+    private sprite: Sprite = null!;
     private originalColor: Color = null!;
+
+    // Biến đếm cho mỗi cột
     private rubyCountCol1: number = 0;
     private rubyCountCol2: number = 0;
 
-    onLoad() {
-        // 🔥 SỬA ĐỔI: Tự động lấy component Sprite trên cùng Node này
-        this.sprite = this.getComponent(Sprite);
+    // Mảng quản lý các viên Ruby đã được đặt để người mua lấy
+    private placedRubies: Node[] = [];
 
+    onLoad() {
+        this.sprite = this.getComponent(Sprite);
         if (this.sprite) {
             this.originalColor = this.sprite.color.clone();
-        } else {
-            console.error("Không tìm thấy component Sprite trên Node DropZone!");
         }
 
         const collider = this.getComponent(Collider2D);
@@ -46,11 +52,14 @@ export class DropZoneController extends Component {
         }
     }
 
-    // ... (Các hàm còn lại giữ nguyên, nhưng sẽ tham chiếu đến `this.sprite` thay vì `this.zoneSprite`)
-
+    /**
+     * ✅ HÀM CẦN THIẾT SỐ 1
+     * Tính toán và trả về vị trí tiếp theo để đặt Ruby.
+     */
     public getNextPlacementPosition(): Vec3 {
         let targetPosition = new Vec3();
         let basePosition = this.node.worldPosition;
+
         if (this.rubyCountCol1 <= this.rubyCountCol2) {
             targetPosition.set(
                 basePosition.x + this.column1_Offset.x,
@@ -66,18 +75,54 @@ export class DropZoneController extends Component {
             );
             this.rubyCountCol2++;
         }
+
         return targetPosition;
     }
 
+    /**
+     * ✅ HÀM CẦN THIẾT SỐ 2
+     * Player gọi hàm này sau khi đặt Ruby để bàn "biết" về sự tồn tại của nó.
+     */
+    public registerPlacedRuby(rubyNode: Node) {
+        this.placedRubies.push(rubyNode);
+        rubyNode.setParent(this.node); // Đặt ruby làm con của DropZone để quản lý
+    }
+
+    /**
+     * Dành cho người mua kiểm tra xem còn Ruby không.
+     */
+    public hasRubies(): boolean {
+        return this.placedRubies.length > 0;
+    }
+
+    /**
+     * Dành cho người mua lấy một viên Ruby.
+     */
+    public takeRuby(): Node | null {
+        if (this.placedRubies.length > 0) {
+            const rubyToTake = this.placedRubies.pop();
+            if (rubyToTake) {
+                rubyToTake.destroy();
+            }
+            return rubyToTake;
+        }
+        return null;
+    }
+
+    // ----- Các hàm xử lý va chạm và đổi màu -----
     private onBeginContact(selfCollider: Collider2D, otherCollider: Collider2D, contact: IPhysics2DContact | null) {
         if (otherCollider.getComponent(PlayerSpine)) {
-            if (this.sprite) { this.sprite.color = this.activeColor; }
+            if (this.sprite) {
+                this.sprite.color = this.activeColor;
+            }
         }
     }
 
     private onEndContact(selfCollider: Collider2D, otherCollider: Collider2D, contact: IPhysics2DContact | null) {
         if (otherCollider.getComponent(PlayerSpine)) {
-            if (this.sprite) { this.sprite.color = this.originalColor; }
+            if (this.sprite) {
+                this.sprite.color = this.originalColor;
+            }
         }
     }
 }

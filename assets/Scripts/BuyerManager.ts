@@ -1,4 +1,4 @@
-// Tên file: BuyerManager.ts
+// File: BuyerManager.ts
 import { _decorator, Component, Node, Prefab, instantiate, Vec3 } from 'cc';
 import { BuyerController } from './BuyerController';
 import { DropZoneController } from './DropZoneController';
@@ -7,66 +7,82 @@ const { ccclass, property } = _decorator;
 
 @ccclass('BuyerManager')
 export class BuyerManager extends Component {
-
-    @property({ type: Prefab, tooltip: "Prefab của người mua hàng" })
+    @property({ type: Prefab })
     buyerPrefab: Prefab = null!;
 
-    @property({ type: Node, tooltip: "Vị trí xếp hàng/mua hàng" })
-    queuePoint: Node = null!;
-
-    @property({ type: Node, tooltip: "Nơi người mua sẽ xuất hiện" })
-    spawnPoint: Node = null!;
-
-    @property({ type: Node, tooltip: "Nơi người mua sẽ biến mất" })
-    exitPoint: Node = null!;
-
-    @property({ type: DropZoneController, tooltip: "Cái bàn nơi người chơi đặt Ruby" })
+    @property({ type: DropZoneController })
     tableDropZone: DropZoneController = null!;
 
-    @property({ tooltip: "Số lượng người mua tối đa trong cảnh" })
-    maxBuyers: number = 5;
+    @property({ type: [Node], tooltip: "Element 0: P2 (Mua hàng)\nElement 1: P3 (Góc)\nElement 2: P4 (Biến mất)" })
+    patrolPoints: Node[] = [];
 
-    private activeBuyers: Node[] = [];
+    @property({ tooltip: "Khoảng cách giữa mỗi người trong hàng." })
+    queueSpacing: number = 80;
+
+    @property({ tooltip: "Số người tối đa trong hàng chờ." })
+    maxQueueSize: number = 5;
+
+    private shoppingQueue: Node[] = [];
 
     start() {
-        // Tạo ra một vài người mua ban đầu
-        for (let i = 0; i < this.maxBuyers; i++) {
-            this.spawnNewBuyer();
-        }
-    }
-
-    // Được gọi bởi BuyerController khi một người mua đã mua xong và rời đi
-    public onBuyerFinished(buyerNode: Node) {
-        // Xóa người mua đã xong khỏi danh sách quản lý
-        const index = this.activeBuyers.indexOf(buyerNode);
-        if (index > -1) {
-            this.activeBuyers.splice(index, 1);
-        }
-
-        // Tạo ra một người mua mới để thay thế
-        this.spawnNewBuyer();
-    }
-
-    private spawnNewBuyer() {
-        if (!this.buyerPrefab || this.activeBuyers.length >= this.maxBuyers) {
+        if (this.patrolPoints.length < 3) {
+            console.error("LỖI CÀI ĐẶT: BuyerManager cần ít nhất 3 điểm tuần tra (P2, P3, P4)!");
             return;
         }
+        for (let i = 0; i < this.maxQueueSize; i++) {
+            this.spawnNewBuyerAtBackOfQueue();
+        }
+    }
+
+    public onBuyerFinishedShopping(buyerNode: Node) {
+        this.shoppingQueue.shift();
+        const controller = buyerNode.getComponent(BuyerController);
+        if (controller) {
+            controller.continuePatrol();
+        }
+        this.updateQueuePositions();
+    }
+
+    public onBuyerLeftScene(buyerNode: Node) {
+        this.spawnNewBuyerAtBackOfQueue();
+    }
+
+    private spawnNewBuyerAtBackOfQueue() {
+        if (this.shoppingQueue.length >= this.maxQueueSize) return;
 
         const newBuyer = instantiate(this.buyerPrefab);
+
+        const spawnIndex = this.shoppingQueue.length;
+        const spawnPosition = this.calculatePositionForQueueIndex(spawnIndex + 2);
+        newBuyer.setWorldPosition(spawnPosition);
+
         this.node.addChild(newBuyer);
-        newBuyer.setWorldPosition(this.spawnPoint.worldPosition);
 
-        this.activeBuyers.push(newBuyer);
-
-        // Lấy script và khởi tạo thông tin cho người mua
-        const buyerController = newBuyer.getComponent(BuyerController);
-        if (buyerController) {
-            buyerController.init(
-                this,
-                this.queuePoint.worldPosition,
-                this.exitPoint.worldPosition,
-                this.tableDropZone
-            );
+        const controller = newBuyer.getComponent(BuyerController);
+        if (controller) {
+            this.shoppingQueue.push(newBuyer);
+            controller.init(this, this.patrolPoints, this.tableDropZone);
+            this.updateQueuePositions();
         }
+    }
+
+    private updateQueuePositions() {
+        for (let i = 0; i < this.shoppingQueue.length; i++) {
+            const buyerNode = this.shoppingQueue[i];
+            const controller = buyerNode.getComponent(BuyerController);
+            const targetPosition = this.calculatePositionForQueueIndex(i);
+            const isAtFront = (i === 0);
+            controller.moveTo(targetPosition, isAtFront);
+        }
+    }
+
+    private calculatePositionForQueueIndex(index: number): Vec3 {
+        const headOfQueuePos = this.patrolPoints[0].worldPosition;
+        const targetPos = new Vec3(
+            headOfQueuePos.x + (index * this.queueSpacing),
+            headOfQueuePos.y,
+            headOfQueuePos.z
+        );
+        return targetPos;
     }
 }
