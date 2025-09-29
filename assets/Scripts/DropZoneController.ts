@@ -32,11 +32,8 @@ export class DropZoneController extends Component {
     private sprite: Sprite = null!;
     private originalColor: Color = null!;
 
-    // Biến đếm cho mỗi cột
     private rubyCountCol1: number = 0;
     private rubyCountCol2: number = 0;
-
-    // Mảng quản lý các viên Ruby đã được đặt để người mua lấy
     private placedRubies: Node[] = [];
 
     onLoad() {
@@ -52,49 +49,52 @@ export class DropZoneController extends Component {
         }
     }
 
+    // 🔥 HÀM MỚI ĐƯỢC THÊM VÀO 🔥
     /**
-     * ✅ HÀM CẦN THIẾT SỐ 1
-     * Tính toán và trả về vị trí tiếp theo để đặt Ruby.
+     * Reset các biến đếm vị trí khi bàn trống.
      */
+    private resetPlacementCounters(): void {
+        this.rubyCountCol1 = 0;
+        this.rubyCountCol2 = 0;
+        console.log("Bàn đã trống, reset vị trí đặt Ruby.");
+    }
+
     public getNextPlacementPosition(): Vec3 {
+        // --- PHẦN NÀY GIỮ NGUYÊN, KHÔNG THAY ĐỔI ---
         let targetPosition = new Vec3();
-        let basePosition = this.node.worldPosition;
+        // Sử dụng ma trận để tính toán chính xác, tránh lỗi khi xoay/scale
+        const targetLocalPosition = new Vec3();
 
         if (this.rubyCountCol1 <= this.rubyCountCol2) {
-            targetPosition.set(
-                basePosition.x + this.column1_Offset.x,
-                basePosition.y + this.column1_Offset.y + (this.rubyCountCol1 * this.rubySpacing),
-                basePosition.z
+            targetLocalPosition.set(
+                this.column1_Offset.x,
+                this.column1_Offset.y + (this.rubyCountCol1 * this.rubySpacing),
+                this.column1_Offset.z
             );
             this.rubyCountCol1++;
         } else {
-            targetPosition.set(
-                basePosition.x + this.column2_Offset.x,
-                basePosition.y + this.column2_Offset.y + (this.rubyCountCol2 * this.rubySpacing),
-                basePosition.z
+            targetLocalPosition.set(
+                this.column2_Offset.x,
+                this.column2_Offset.y + (this.rubyCountCol2 * this.rubySpacing),
+                this.column2_Offset.z
             );
             this.rubyCountCol2++;
         }
 
+        Vec3.transformMat4(targetPosition, targetLocalPosition, this.node.worldMatrix);
         return targetPosition;
     }
 
-    /**
-     * ✅ HÀM CẦN THIẾT SỐ 2
-     * Player gọi hàm này sau khi đặt Ruby để bàn "biết" về sự tồn tại của nó.
-     */
     public registerPlacedRuby(rubyNode: Node) {
         this.placedRubies.push(rubyNode);
-        rubyNode.setParent(this.node); // Đặt ruby làm con của DropZone để quản lý
+        rubyNode.setParent(this.node);
     }
 
-    /**
-     * Dành cho người mua kiểm tra xem còn Ruby không.
-     */
     public hasRubies(): boolean {
         return this.placedRubies.length > 0;
     }
 
+    // 🔥 HÀM NÀY ĐÃ ĐƯỢC SỬA LẠI 🔥
     /**
      * Dành cho người mua lấy một viên Ruby.
      */
@@ -104,12 +104,17 @@ export class DropZoneController extends Component {
             if (rubyToTake) {
                 rubyToTake.destroy();
             }
+
+            // KIỂM TRA NẾU BÀN ĐÃ TRỐNG THÌ RESET BIẾN ĐẾM
+            if (this.placedRubies.length === 0) {
+                this.resetPlacementCounters();
+            }
+
             return rubyToTake;
         }
         return null;
     }
 
-    // ----- Các hàm xử lý va chạm và đổi màu -----
     private onBeginContact(selfCollider: Collider2D, otherCollider: Collider2D, contact: IPhysics2DContact | null) {
         if (otherCollider.getComponent(PlayerSpine)) {
             if (this.sprite) {
