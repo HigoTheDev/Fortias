@@ -1,7 +1,8 @@
 // File: BuyerController.ts
-import { _decorator, Component, Node, Vec3 } from 'cc';
+import { _decorator, Component, Node, Vec3, Prefab, instantiate } from 'cc';
 import { BuyerManager } from './BuyerManager';
 import { DropZoneController } from './DropZoneController';
+import { CoinManager } from './CoinManager';
 
 const { ccclass, property } = _decorator;
 
@@ -19,24 +20,26 @@ export class BuyerController extends Component {
     private state: BuyerState = BuyerState.MOVING;
     private manager: BuyerManager = null!;
     private tableDropZone: DropZoneController = null!;
-
     private patrolPoints: Node[] = [];
     private currentTarget: Vec3 = null!;
     private currentStage: 'QUEUE' | 'EXIT' = 'QUEUE';
     private isAtFront: boolean = false;
-
     private rubiesToBuy: number = 0;
     private originalScaleX: number = 1;
+    private coinPrefab: Prefab = null!;
+    private totalRubiesBought: number = 0;
 
     start() {
         this.originalScaleX = this.node.scale.x;
     }
 
-    public init(manager: BuyerManager, points: Node[], table: DropZoneController) {
+    public init(manager: BuyerManager, points: Node[], table: DropZoneController, coinPrefab: Prefab) {
         this.manager = manager;
         this.patrolPoints = points;
         this.tableDropZone = table;
+        this.coinPrefab = coinPrefab;
         this.rubiesToBuy = Math.floor(Math.random() * (4 - 2 + 1)) + 2;
+        this.totalRubiesBought = this.rubiesToBuy;
     }
 
     public moveTo(targetPos: Vec3, isAtFront: boolean) {
@@ -48,7 +51,7 @@ export class BuyerController extends Component {
 
     public continuePatrol() {
         this.currentStage = 'EXIT';
-        this.currentTarget = this.patrolPoints[1].worldPosition; // Nhắm đến P3
+        this.currentTarget = this.patrolPoints[1].worldPosition;
         this.state = BuyerState.MOVING;
     }
 
@@ -56,7 +59,6 @@ export class BuyerController extends Component {
         if (this.state !== BuyerState.MOVING || !this.currentTarget) {
             return;
         }
-
         if (Vec3.distance(this.node.worldPosition, this.currentTarget) < 5) {
             this.handleArrival();
         } else {
@@ -72,12 +74,11 @@ export class BuyerController extends Component {
             if (this.isAtFront) {
                 this.startBuying();
             }
-        } else { // Đang trong giai đoạn 'EXIT'
-            if (this.currentTarget.equals(this.patrolPoints[1].worldPosition)) { // Vừa đến P3
-                this.currentTarget = this.patrolPoints[2].worldPosition; // Đi tiếp P4
+        } else {
+            if (this.currentTarget.equals(this.patrolPoints[1].worldPosition)) {
+                this.currentTarget = this.patrolPoints[2].worldPosition;
                 this.state = BuyerState.MOVING;
-            }
-            else if (this.currentTarget.equals(this.patrolPoints[2].worldPosition)) { // Vừa đến P4
+            } else if (this.currentTarget.equals(this.patrolPoints[2].worldPosition)) {
                 this.manager.onBuyerLeftScene(this.node);
                 this.destroy();
             }
@@ -92,10 +93,10 @@ export class BuyerController extends Component {
 
     private buyingLoop() {
         if (this.rubiesToBuy <= 0) {
+            this.spawnCoins();
             this.manager.onBuyerFinishedShopping(this.node);
             return;
         }
-
         if (this.tableDropZone.hasRubies()) {
             this.tableDropZone.takeRuby();
             this.rubiesToBuy--;
@@ -106,6 +107,31 @@ export class BuyerController extends Component {
                     this.buyingLoop();
                 }
             }, 2.0);
+        }
+    }
+
+    private spawnCoins() {
+        if (!this.coinPrefab) {
+            console.warn("Coin Prefab chưa được thiết lập cho Buyer!");
+            return;
+        }
+        if (!CoinManager.instance) {
+            console.error("Không tìm thấy CoinManager trong Scene!");
+            return;
+        }
+
+        const createCoin = (delay: number) => {
+            this.scheduleOnce(() => {
+                if (!this.isValid) return;
+                const coin = instantiate(this.coinPrefab);
+                CoinManager.instance.node.addChild(coin);
+                coin.setWorldPosition(this.node.worldPosition);
+                CoinManager.instance.addCoinToStack(coin);
+            }, delay);
+        };
+
+        for (let i = 0; i < this.totalRubiesBought; i++) {
+            createCoin(i * 0.1);
         }
     }
 
