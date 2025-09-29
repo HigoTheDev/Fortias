@@ -136,7 +136,7 @@
     "fileId": "f99IP0ZGRDookKuPqWgFj6"
   },
   {
-    "__type__": "d58bcPpKLtLoIu9Rv5sqCaS",
+    "__type__": "e58782vCnFKc58w3EAOspSx",
     "_name": "",
     "_objFlags": 0,
     "__editorExtras__": {},
@@ -150,19 +150,17 @@
     "spine": {
       "__id__": 4
     },
-    "bulletPrefab": {
+    "projectilePrefab": {
       "__uuid__": "74d17eeb-d9aa-4fb3-844d-84e6efcbc27a",
       "__expectedType__": "cc.Prefab"
     },
-    "detectionRange": 200,
-    "attackRange": 150,
-    "bulletSpeed": 300,
-    "attackCooldown": 1.5,
+    "detectionRange": 400,
+    "attackCooldown": 1,
     "_id": ""
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "baMaCNqKVCjrvMLN8qfSbx"
+    "fileId": "5dAqG6ROFORK1vbPmTI186"
   },
   {
     "__type__": "cc.PrefabInfo",
@@ -173,6 +171,7 @@
       "__id__": 0
     },
     "fileId": "ddptLSTf5HuJ1HmMgumA1w",
+    "instance": null,
     "targetOverrides": null
   }
 ]
