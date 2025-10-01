@@ -1,8 +1,6 @@
 // File: CoinController.ts
 import { _decorator, Component, Vec3, tween } from 'cc';
-
 const { ccclass, property } = _decorator;
-
 @ccclass('CoinController')
 export class CoinController extends Component {
     /**

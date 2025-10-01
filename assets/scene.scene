@@ -5775,6 +5775,18 @@
       "__uuid__": "c6433c0a-d26f-4844-a401-cd7e704f4e99",
       "__expectedType__": "cc.Prefab"
     },
+    "buyerSkins": [
+      "female_1",
+      "female_2",
+      "female_3",
+      "female_4",
+      "female_5",
+      "male_1",
+      "male_2",
+      "male_3",
+      "male_4",
+      "male_5"
+    ],
     "tableDropZone": {
       "__id__": 310
     },
