@@ -1,5 +1,5 @@
 // File: BuyerManager.ts
-import { _decorator, Component, Node, Prefab, instantiate, Vec3 } from 'cc';
+import { _decorator, Component, Node, Prefab, instantiate, Vec3, sp } from 'cc'; // Thêm 'sp'
 import { BuyerController } from './BuyerController';
 import { DropZoneController } from './DropZoneController';
 
@@ -10,12 +10,18 @@ export class BuyerManager extends Component {
     @property({ type: Prefab })
     buyerPrefab: Prefab = null!;
 
-    /**
-     * ✅ THAY ĐỔI SỐ 1: Thêm thuộc tính cho Coin Prefab
-     * Kéo Prefab đồng xu của bạn vào đây trong Inspector.
-     */
     @property({ type: Prefab, tooltip: "Prefab của đồng xu sẽ rơi ra khi mua hàng." })
     coinPrefab: Prefab = null!;
+
+    /**
+     * ✅ THAY ĐỔI SỐ 1: Tạo một mảng để chứa tên các skin của bạn.
+     * Hãy gõ chính xác tên các skin như trong hình bạn gửi.
+     */
+    @property({
+        type: [String],
+        tooltip: "Danh sách tên các skin cho Buyer (ví dụ: female_1, male_2...)"
+    })
+    buyerSkins: string[] = ["female_1", "female_2", "female_3", "male_1", "male_2"];
 
     @property({ type: DropZoneController })
     tableDropZone: DropZoneController = null!;
@@ -23,6 +29,7 @@ export class BuyerManager extends Component {
     @property({ type: [Node], tooltip: "Element 0: P2 (Mua hàng)\nElement 1: P3 (Góc)\nElement 2: P4 (Biến mất)" })
     patrolPoints: Node[] = [];
 
+    // ... (các thuộc tính khác giữ nguyên) ...
     @property({ tooltip: "Khoảng cách giữa mỗi người trong hàng." })
     queueSpacing: number = 80;
 
@@ -32,6 +39,11 @@ export class BuyerManager extends Component {
     private shoppingQueue: Node[] = [];
 
     start() {
+        if (this.buyerSkins.length === 0) {
+            console.error("LỖI CÀI ĐẶT: BuyerManager chưa có skin nào trong danh sách 'Buyer Skins'!");
+            return;
+        }
+        // ... (phần start còn lại giữ nguyên) ...
         if (!this.coinPrefab) {
             console.error("LỖI CÀI ĐẶT: BuyerManager chưa được gán Coin Prefab!");
             return;
@@ -54,7 +66,7 @@ export class BuyerManager extends Component {
         this.updateQueuePositions();
     }
 
-    public onBuyerLeftScene(buyerNode: Node) {
+    public onBuyerLeftScene() {
         this.spawnNewBuyerAtBackOfQueue();
     }
 
@@ -70,10 +82,14 @@ export class BuyerManager extends Component {
         const controller = newBuyer.getComponent(BuyerController);
         if (controller) {
             this.shoppingQueue.push(newBuyer);
+
             /**
-             * ✅ THAY ĐỔI SỐ 2: Truyền coinPrefab vào cho Buyer
+             * ✅ THAY ĐỔI SỐ 2: Chọn ngẫu nhiên một skin và truyền vào hàm init.
              */
-            controller.init(this, this.patrolPoints, this.tableDropZone, this.coinPrefab);
+            const randomIndex = Math.floor(Math.random() * this.buyerSkins.length);
+            const randomSkin = this.buyerSkins[randomIndex];
+
+            controller.init(this, this.patrolPoints, this.tableDropZone, this.coinPrefab, randomSkin);
             this.updateQueuePositions();
         }
     }

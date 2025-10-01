@@ -17,64 +17,33 @@ enum PlayerState {
 @ccclass('PlayerSpine')
 export class PlayerSpine extends Component {
     // --- Properties ---
-    @property(sp.Skeleton)
-    spine: sp.Skeleton = null!;
-
-    @property(RigidBody2D)
-    body: RigidBody2D = null!;
-
-    @property
-    speed: number = 200;
-
-    @property(VirtualJoystick)
-    joystick: VirtualJoystick | null = null;
-
-    @property(Node)
-    hpBarNode: Node = null!;
-
-    @property({ min: 1, max: 1000 })
-    maxHP: number = 100;
-
-    @property
-    attackRange: number = 80;
-
-    @property
-    aoeRadius: number = 150;
-
-    @property
-    public damage: number = 50;
-
-    // --- Ruby Collection Properties ---
-    @property({ group: 'Ruby Collection', tooltip: "Bán kính hút Ruby." })
-    collectionRadius: number = 250;
-    @property({ group: 'Ruby Collection', tooltip: "Tốc độ Ruby bay theo Player." })
-    rubyAttractSpeed: number = 10;
-    @property({ group: 'Ruby Collection', tooltip: "Khoảng cách dọc giữa các viên Ruby." })
-    rubyStackOffset: number = 8;
-    @property({ group: 'Ruby Collection', tooltip: "Vị trí của chồng Ruby so với Player (x, y)." })
-    rubyStackPosition: Vec2 = new Vec2(-20, 60);
-
-    // --- Coin Collection Properties ---
-    @property({ group: 'Coin Collection', tooltip: "Tốc độ Coin bay theo Player." })
-    coinAttractSpeed: number = 10;
-    @property({ group: 'Coin Collection', tooltip: "Khoảng cách dọc giữa các đồng xu." })
-    coinStackOffset: number = 8;
-    @property({ group: 'Coin Collection', tooltip: "Vị trí của chồng Coin so với Player (x, y)." })
-    coinStackPosition: Vec2 = new Vec2(20, 60);
+    @property(sp.Skeleton) spine: sp.Skeleton = null!;
+    @property(RigidBody2D) body: RigidBody2D = null!;
+    @property speed: number = 200;
+    @property(VirtualJoystick) joystick: VirtualJoystick | null = null;
+    @property(Node) hpBarNode: Node = null!;
+    @property({ min: 1, max: 1000 }) maxHP: number = 100;
+    @property attackRange: number = 80;
+    @property aoeRadius: number = 150;
+    @property public damage: number = 50;
+    @property({ group: 'Ruby Collection', tooltip: "Bán kính hút Ruby." }) collectionRadius: number = 250;
+    @property({ group: 'Ruby Collection', tooltip: "Tốc độ Ruby bay theo Player." }) rubyAttractSpeed: number = 10;
+    @property({ group: 'Ruby Collection', tooltip: "Khoảng cách dọc giữa các viên Ruby." }) rubyStackOffset: number = 8;
+    @property({ group: 'Ruby Collection', tooltip: "Vị trí của chồng Ruby so với Player (x, y)." }) rubyStackPosition: Vec2 = new Vec2(-20, 60);
+    @property({ group: 'Coin Collection', tooltip: "Tốc độ Coin bay theo Player." }) coinAttractSpeed: number = 10;
+    @property({ group: 'Coin Collection', tooltip: "Khoảng cách dọc giữa các đồng xu." }) coinStackOffset: number = 8;
+    @property({ group: 'Coin Collection', tooltip: "Vị trí của chồng Coin so với Player (x, y)." }) coinStackPosition: Vec2 = new Vec2(-20, 0);
 
     // --- Private Variables ---
     private collectedRubies: Node[] = [];
     private collectedCoins: Node[] = [];
-
     private moveDirKeyboard: Vec2 = new Vec2(0, 0);
     private moveDir: Vec2 = new Vec2(0, 0);
     private tempVec2: Vec2 = new Vec2();
     private originalScaleX: number = 1;
     private hpBar: HPBar;
-
     public hp: number = 100;
     public totalCoins: number = 0;
-
     private state: PlayerState = PlayerState.Idle;
     private activeDropZone: DropZoneController | null = null;
 
@@ -96,13 +65,9 @@ export class PlayerSpine extends Component {
             if (this.body) this.body.linearVelocity = new Vec2(0, 0);
             return;
         }
-
         this.checkForNearbyRubies();
-
-        // Gọi cả hai hàm cập nhật cho hai chồng riêng biệt
         this.updateRubyStack(deltaTime);
         this.updateCoinStack(deltaTime);
-
         if (this.state !== PlayerState.Attack) {
             const enemy = this.getClosestEnemy();
             if (enemy) {
@@ -112,7 +77,6 @@ export class PlayerSpine extends Component {
                 }
             }
         }
-
         let dir = new Vec2(0, 0);
         if (this.joystick && this.joystick.isUsingJoystic) {
             dir = this.joystick.getAxis();
@@ -121,12 +85,10 @@ export class PlayerSpine extends Component {
         }
         if (dir.length() > 1) dir = dir.normalize();
         this.moveDir = dir;
-
         if (this.body) {
             this.tempVec2.set(this.moveDir.x * this.speed, this.moveDir.y * this.speed);
             this.body.linearVelocity = this.tempVec2;
         }
-
         if (this.state !== PlayerState.Attack) {
             if (this.moveDir.length() > 0) {
                 if (this.state !== PlayerState.Run) {
@@ -140,7 +102,6 @@ export class PlayerSpine extends Component {
                 }
             }
         }
-
         if (this.moveDir.x > 0) {
             this.node.setScale(this.originalScaleX, this.node.getScale().y, 1);
         } else if (this.moveDir.x < 0) {
@@ -148,31 +109,17 @@ export class PlayerSpine extends Component {
         }
     }
 
-    /**
-     * Hàm này được CoinManager gọi để "bàn giao" xu cho Player
-     */
     public receiveCoin(coinNode: Node) {
         this.collectedCoins.push(coinNode);
         this.totalCoins++;
     }
 
-    /**
-     * Hàm này làm cho chồng xu đi theo Player
-     */
     private updateCoinStack(deltaTime: number) {
         if (this.collectedCoins.length === 0) return;
-        const basePosition = new Vec3(
-            this.node.worldPosition.x + this.coinStackPosition.x,
-            this.node.worldPosition.y + this.coinStackPosition.y,
-            this.node.worldPosition.z
-        );
+        const basePosition = new Vec3(this.node.worldPosition.x + this.coinStackPosition.x, this.node.worldPosition.y + this.coinStackPosition.y, this.node.worldPosition.z);
         for (let i = 0; i < this.collectedCoins.length; i++) {
             const coinNode = this.collectedCoins[i];
-            const targetPosition = new Vec3(
-                basePosition.x,
-                basePosition.y + (i * this.coinStackOffset),
-                basePosition.z
-            );
+            const targetPosition = new Vec3(basePosition.x, basePosition.y + (i * this.coinStackOffset), basePosition.z);
             const currentPos = coinNode.worldPosition;
             const newPos = new Vec3();
             Vec3.lerp(newPos, currentPos, targetPosition, deltaTime * this.coinAttractSpeed);
@@ -180,12 +127,11 @@ export class PlayerSpine extends Component {
         }
     }
 
-    // --- Ruby Management ---
-
     private onBodyBeginContact(selfCollider: Collider2D, otherCollider: Collider2D, contact: IPhysics2DContact | null) {
         const dropZone = otherCollider.getComponent(DropZoneController);
         if (dropZone) {
             this.activeDropZone = dropZone;
+            // Gọi hàm thả ruby khi va chạm với DropZone
             this.dropOffRubies(dropZone);
         }
     }
@@ -198,9 +144,7 @@ export class PlayerSpine extends Component {
     }
 
     private updateRubyStack(deltaTime: number) {
-        if (this.collectedRubies.length === 0 || this.activeDropZone) {
-            return;
-        }
+        if (this.collectedRubies.length === 0 || this.activeDropZone) { return; }
         const basePosition = new Vec3(this.node.worldPosition.x + this.rubyStackPosition.x, this.node.worldPosition.y + this.rubyStackPosition.y, this.node.worldPosition.z);
         for (let i = 0; i < this.collectedRubies.length; i++) {
             const rubyNode = this.collectedRubies[i];
@@ -212,26 +156,44 @@ export class PlayerSpine extends Component {
         }
     }
 
-    private dropOffRubies(dropZone: DropZoneController) {
+    /**
+     * ✅ ĐÃ SỬA: Hàm thả Ruby đã được tối ưu.
+     * Logic này đảm bảo Ruby bay từ vị trí hiện tại đến đúng tọa độ thế giới trên bàn,
+     * và chỉ đổi parent sau khi đã bay đến nơi để tránh lỗi hiển thị.
+     */
+    public dropOffRubies(dropZone: DropZoneController) {
         if (this.collectedRubies.length === 0) {
             return;
         }
+
         const rubiesToDrop = [...this.collectedRubies];
         this.collectedRubies = [];
-        for (let i = 0; i < rubiesToDrop.length; i++) {
-            const rubyNode = rubiesToDrop[i];
+
+        let dropIndex = 0;
+        // Dùng while và pop() để lấy ruby từ trên cùng của chồng xuống
+        while (rubiesToDrop.length > 0) {
+            const rubyNode = rubiesToDrop.pop(); // Lấy viên ruby trên cùng
+            if (!rubyNode) continue;
+
             const rubyScript = rubyNode.getComponent(RubyController);
             if (rubyScript) {
                 rubyScript.enabled = false;
             }
-            const finalTargetPos = dropZone.getNextPlacementPosition();
+
+            // 1. Lấy vị trí đích TỌA ĐỘ THẾ GIỚI từ DropZone
+            const finalWorldPos = dropZone.getNextPlacementPosition();
+
+            // 2. Tween animation sử dụng "worldPosition"
             tween(rubyNode)
-                .delay(i * 0.08)
-                .to(0.4, { worldPosition: finalTargetPos }, { easing: 'quadIn' })
+                .delay(dropIndex * 0.08)
+                .to(0.4, { worldPosition: finalWorldPos }, { easing: 'quadIn' })
                 .call(() => {
+                    // 3. Sau khi bay tới nơi, mới đăng ký và đổi parent
                     dropZone.registerPlacedRuby(rubyNode);
                 })
                 .start();
+
+            dropIndex++;
         }
     }
 
@@ -240,9 +202,7 @@ export class PlayerSpine extends Component {
         if (allRubies.length === 0) return;
         const playerPos = new Vec2(this.node.worldPosition.x, this.node.worldPosition.y);
         for (const ruby of allRubies) {
-            if (ruby.isCollected) {
-                continue;
-            }
+            if (ruby.isCollected) { continue; }
             const rubyPos = new Vec2(ruby.node.worldPosition.x, ruby.node.worldPosition.y);
             const distance = Vec2.distance(playerPos, rubyPos);
             if (distance <= this.collectionRadius) {
@@ -255,8 +215,6 @@ export class PlayerSpine extends Component {
             }
         }
     }
-
-    // --- Other Methods ---
 
     private getClosestEnemy(): Node | null {
         const allEnemies = this.node.scene.getComponentsInChildren(GoblinController);
@@ -303,8 +261,44 @@ export class PlayerSpine extends Component {
         });
     }
 
-    public die() { if (this.state === PlayerState.Die) return; this.state = PlayerState.Die; this.hp = 0; if (this.body) this.body.linearVelocity = new Vec2(0, 0); this.spine.setAnimation(0, "die", false); this.spine.setCompleteListener((trackEntry) => { if (trackEntry.animation.name === "die") { this.node.destroy(); } }); }
-    public takeDamage(dmg: number) { if (this.state === PlayerState.Die) return; this.hp -= dmg; this.hp = Math.max(0, this.hp); if (this.hp <= 0) this.die(); }
-    private onKeyDown(event: EventKeyboard) { switch (event.keyCode) { case KeyCode.KEY_W: this.moveDirKeyboard.y = 1; break; case KeyCode.KEY_S: this.moveDirKeyboard.y = -1; break; case KeyCode.KEY_A: this.moveDirKeyboard.x = -1; break; case KeyCode.KEY_D: this.moveDirKeyboard.x = 1; break; case KeyCode.SPACE: this.attack(this.getClosestEnemy()); break; case KeyCode.KEY_P: this.die(); break; case KeyCode.KEY_L: this.takeDamage(50); break; } }
-    private onKeyUp(event: EventKeyboard) { switch (event.keyCode) { case KeyCode.KEY_W: if (this.moveDirKeyboard.y > 0) this.moveDirKeyboard.y = 0; break; case KeyCode.KEY_S: if (this.moveDirKeyboard.y < 0) this.moveDirKeyboard.y = 0; break; case KeyCode.KEY_A: if (this.moveDirKeyboard.x < 0) this.moveDirKeyboard.x = 0; break; case KeyCode.KEY_D: if (this.moveDirKeyboard.x > 0) this.moveDirKeyboard.x = 0; break; } }
+    public die() {
+        if (this.state === PlayerState.Die) return;
+        this.state = PlayerState.Die;
+        this.hp = 0;
+        if (this.body) this.body.linearVelocity = new Vec2(0, 0);
+        this.spine.setAnimation(0, "die", false);
+        this.spine.setCompleteListener((trackEntry) => {
+            if (trackEntry.animation.name === "die") {
+                this.node.destroy();
+            }
+        });
+    }
+
+    public takeDamage(dmg: number) {
+        if (this.state === PlayerState.Die) return;
+        this.hp -= dmg;
+        this.hp = Math.max(0, this.hp);
+        if (this.hp <= 0) this.die();
+    }
+
+    private onKeyDown(event: EventKeyboard) {
+        switch (event.keyCode) {
+            case KeyCode.KEY_W: this.moveDirKeyboard.y = 1; break;
+            case KeyCode.KEY_S: this.moveDirKeyboard.y = -1; break;
+            case KeyCode.KEY_A: this.moveDirKeyboard.x = -1; break;
+            case KeyCode.KEY_D: this.moveDirKeyboard.x = 1; break;
+            case KeyCode.SPACE: this.attack(this.getClosestEnemy()); break;
+            case KeyCode.KEY_P: this.die(); break;
+            case KeyCode.KEY_L: this.takeDamage(50); break;
+        }
+    }
+
+    private onKeyUp(event: EventKeyboard) {
+        switch (event.keyCode) {
+            case KeyCode.KEY_W: if (this.moveDirKeyboard.y > 0) this.moveDirKeyboard.y = 0; break;
+            case KeyCode.KEY_S: if (this.moveDirKeyboard.y < 0) this.moveDirKeyboard.y = 0; break;
+            case KeyCode.KEY_A: if (this.moveDirKeyboard.x < 0) this.moveDirKeyboard.x = 0; break;
+            case KeyCode.KEY_D: if (this.moveDirKeyboard.x > 0) this.moveDirKeyboard.x = 0; break;
+        }
+    }
 }

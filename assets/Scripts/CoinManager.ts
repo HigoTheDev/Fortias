@@ -2,9 +2,7 @@
 import { _decorator, Component, Node, Vec3, Collider2D, Contact2DType, IPhysics2DContact } from 'cc';
 import { CoinController } from './CoinController';
 import { PlayerSpine } from "db://assets/Scripts/Player/PlayerSpine";
-
 const { ccclass, property } = _decorator;
-
 @ccclass('CoinManager')
 export class CoinManager extends Component {
     @property({ type: Node })
@@ -41,7 +39,7 @@ export class CoinManager extends Component {
     }
 
     /**
-     * ✅ THAY ĐỔI QUAN TRỌNG: Thay vì hủy xu, bây giờ sẽ gọi hàm receiveCoin của Player
+     * Thay vì hủy xu, bây giờ sẽ gọi hàm receiveCoin của Player
      */
     private collectAllCoins(player: PlayerSpine) {
         if (this.stackedCoins.length === 0) return;
@@ -55,7 +53,6 @@ export class CoinManager extends Component {
             if (coinController) {
                 this.scheduleOnce(() => {
                     const onCoinArrived = () => {
-                        // Bàn giao đồng xu cho Player để Player tự quản lý
                         player.receiveCoin(coinNode);
                     };
                     coinController.moveTo(playerNode.worldPosition, onCoinArrived);
