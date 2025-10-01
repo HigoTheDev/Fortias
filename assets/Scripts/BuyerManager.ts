@@ -10,6 +10,13 @@ export class BuyerManager extends Component {
     @property({ type: Prefab })
     buyerPrefab: Prefab = null!;
 
+    /**
+     * ✅ THAY ĐỔI SỐ 1: Thêm thuộc tính cho Coin Prefab
+     * Kéo Prefab đồng xu của bạn vào đây trong Inspector.
+     */
+    @property({ type: Prefab, tooltip: "Prefab của đồng xu sẽ rơi ra khi mua hàng." })
+    coinPrefab: Prefab = null!;
+
     @property({ type: DropZoneController })
     tableDropZone: DropZoneController = null!;
 
@@ -25,6 +32,10 @@ export class BuyerManager extends Component {
     private shoppingQueue: Node[] = [];
 
     start() {
+        if (!this.coinPrefab) {
+            console.error("LỖI CÀI ĐẶT: BuyerManager chưa được gán Coin Prefab!");
+            return;
+        }
         if (this.patrolPoints.length < 3) {
             console.error("LỖI CÀI ĐẶT: BuyerManager cần ít nhất 3 điểm tuần tra (P2, P3, P4)!");
             return;
@@ -51,17 +62,18 @@ export class BuyerManager extends Component {
         if (this.shoppingQueue.length >= this.maxQueueSize) return;
 
         const newBuyer = instantiate(this.buyerPrefab);
-
         const spawnIndex = this.shoppingQueue.length;
         const spawnPosition = this.calculatePositionForQueueIndex(spawnIndex + 2);
         newBuyer.setWorldPosition(spawnPosition);
-
         this.node.addChild(newBuyer);
 
         const controller = newBuyer.getComponent(BuyerController);
         if (controller) {
             this.shoppingQueue.push(newBuyer);
-            controller.init(this, this.patrolPoints, this.tableDropZone);
+            /**
+             * ✅ THAY ĐỔI SỐ 2: Truyền coinPrefab vào cho Buyer
+             */
+            controller.init(this, this.patrolPoints, this.tableDropZone, this.coinPrefab);
             this.updateQueuePositions();
         }
     }
