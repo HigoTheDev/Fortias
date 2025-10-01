@@ -23,6 +23,9 @@ export class Support extends Component {
     @property
     detectionRange: number = 400;
 
+    @property(Prefab)
+    ultimateEffectPrefab: Prefab = null!;
+
     @property
     attackCooldown: number = 1.0;
 
@@ -94,16 +97,28 @@ export class Support extends Component {
         console.log("Casting Ultimate!");
         this.currentState = SupportState.ULTIMATE;
 
+        // --- MỚI: Kích hoạt hiệu ứng Particle ---
+        if (this.ultimateEffectPrefab) {
+            const effect = instantiate(this.ultimateEffectPrefab);
+
+            // Thêm hiệu ứng vào scene (cùng cấp với NPC)
+            this.node.parent.addChild(effect);
+
+        }
+        // -----------------------------------------
+
+        // Sắp xếp và chọn mục tiêu (giữ nguyên)
         allTargets.sort((a, b) => {
             const distA = a.node.worldPosition.subtract(this.node.worldPosition).lengthSqr();
             const distB = b.node.worldPosition.subtract(this.node.worldPosition).lengthSqr();
             return distA - distB;
         });
-
         const ultiTargets = allTargets.slice(0, this.maxUltiTargets);
 
+        // Chạy animation (giữ nguyên)
         this.spine.setAnimation(0, "skill_1", false);
 
+        // Lắng nghe sự kiện animation kết thúc (giữ nguyên)
         this.spine.setCompleteListener((trackEntry) => {
             if (trackEntry.animation.name === "skill_1") {
                 console.log("Ultimate animation finished. Killing targets.");
@@ -112,15 +127,14 @@ export class Support extends Component {
                         target.die();
                     }
                 }
-
                 this.projectileCount = 0;
                 this.currentState = SupportState.IDLE;
                 this.spine.setAnimation(0, "idle", true);
-
                 this.spine.setCompleteListener(null);
             }
         });
     }
+
 
     private shootProjectile(target: GoblinController) {
         if (!this.projectilePrefab) return;
