@@ -1,9 +1,11 @@
 import { _decorator, Component, Node, Vec3, math } from "cc";
 import { GoblinController } from "db://assets/Scripts/Enemies/GoblinController";
-const { ccclass } = _decorator;
+const { ccclass, property } = _decorator;
 
 @ccclass("SupportProjectile")
 export class SupportProjectile extends Component {
+    @property
+    rotationSpeed: number = 360;
     private startPos: Vec3 = new Vec3();
     private endPos: Vec3 = new Vec3();
     private height: number = 100;       // độ cong parabol
@@ -42,20 +44,26 @@ export class SupportProjectile extends Component {
         this.elapsed += dt;
         const t = Math.min(this.elapsed / this.duration, 1);
 
-        // Nội suy vị trí
+        // Nội suy vị trí (giữ nguyên)
         const x = math.lerp(this.startPos.x, this.endPos.x, t);
         const y = math.lerp(this.startPos.y, this.endPos.y, t);
 
-        // Parabol
+        // Parabol (giữ nguyên)
         const parabola = this.height * (1 - Math.pow(2 * t - 1, 2));
         const pos = new Vec3(x, y + parabola, 0);
         this.node.setWorldPosition(pos);
 
-        // Quay đạn
-        let angle = this.isRight ? math.lerp(90, -90, t) : math.lerp(-90, 90, t);
-        this.node.setRotationFromEuler(0, 0, angle);
+        // --- THAY THẾ LOGIC XOAY ---
+        // Bỏ dòng code xoay theo quỹ đạo cũ:
+        // let angle = this.isRight ? math.lerp(90, -90, t) : math.lerp(-90, 90, t);
+        // this.node.setRotationFromEuler(0, 0, angle);
 
-        // Khi chạm đích
+        // Thêm code xoay tròn liên tục:
+        const currentAngle = this.node.angle;
+        this.node.angle = currentAngle + this.rotationSpeed * dt;
+        // -------------------------
+
+        // Khi chạm đích (giữ nguyên)
         if (t >= 1) {
             if (this.targetGoblin && !this.targetGoblin.isDead) {
                 this.targetGoblin.die();
