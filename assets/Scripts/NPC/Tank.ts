@@ -1,6 +1,6 @@
 import { _decorator, Component, Node, sp, Prefab, instantiate } from "cc";
 import { GoblinController } from "db://assets/Scripts/Enemies/GoblinController";
-import { SupportProjectile } from "./SupportProjectile";
+import { TankProjectile } from "./TankProjectile";
 const { ccclass, property } = _decorator;
 
 enum SupportState {
@@ -9,8 +9,8 @@ enum SupportState {
     ULTIMATE,
 }
 
-@ccclass("Support")
-export class Support extends Component {
+@ccclass("Tank")
+export class Tank extends Component {
     @property(sp.Skeleton)
     spine: sp.Skeleton = null!;
 
@@ -129,7 +129,7 @@ export class Support extends Component {
         this.node.parent.addChild(projectile);
         const isRight = target.node.worldPosition.x >= this.node.worldPosition.x;
         const startPos = this.firePoint ? this.firePoint.worldPosition : this.node.worldPosition;
-        const projComp = projectile.getComponent(SupportProjectile);
+        const projComp = projectile.getComponent(TankProjectile);
         projComp?.shoot(startPos, target, isRight);
 
         this.projectileCount++;
