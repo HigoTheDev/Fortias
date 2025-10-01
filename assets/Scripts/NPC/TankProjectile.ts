@@ -2,8 +2,8 @@ import { _decorator, Component, Node, Vec3, math, Prefab, instantiate } from "cc
 import { GoblinController } from "db://assets/Scripts/Enemies/GoblinController";
 const { ccclass, property } = _decorator;
 
-@ccclass("SupportProjectile")
-export class SupportProjectile extends Component {
+@ccclass("TankProjectile")
+export class TankProjectile extends Component {
     @property
     rotationSpeed: number = 360;
     @property(Prefab)
