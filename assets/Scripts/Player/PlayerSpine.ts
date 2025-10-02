@@ -1,9 +1,11 @@
+// File: PlayerSpine.ts (Hoàn chỉnh)
 import { _decorator, Component, sp, input, Input, EventKeyboard, KeyCode, Vec2, RigidBody2D, Node, Collider2D, Contact2DType, IPhysics2DContact, Vec3, tween } from 'cc';
 import { VirtualJoystick } from "db://assets/Scripts/Player/VirtualJoystick";
 import { HPBar } from "db://assets/Scripts/Player/HPBar";
 import { GoblinController } from "db://assets/Scripts/Enemies/GoblinController";
 import { RubyController } from "db://assets/Scripts/RubyController";
 import { DropZoneController } from "db://assets/Scripts/DropZoneController";
+import { GameManager } from "db://assets/Scripts/GameManager";
 
 const { ccclass, property } = _decorator;
 
@@ -43,7 +45,6 @@ export class PlayerSpine extends Component {
     private originalScaleX: number = 1;
     private hpBar: HPBar;
     public hp: number = 100;
-    public totalCoins: number = 0;
     private state: PlayerState = PlayerState.Idle;
     private activeDropZone: DropZoneController | null = null;
 
@@ -111,7 +112,7 @@ export class PlayerSpine extends Component {
 
     public receiveCoin(coinNode: Node) {
         this.collectedCoins.push(coinNode);
-        this.totalCoins++;
+        GameManager.instance.addCoins(1);
     }
 
     private updateCoinStack(deltaTime: number) {
@@ -120,10 +121,18 @@ export class PlayerSpine extends Component {
         for (let i = 0; i < this.collectedCoins.length; i++) {
             const coinNode = this.collectedCoins[i];
             const targetPosition = new Vec3(basePosition.x, basePosition.y + (i * this.coinStackOffset), basePosition.z);
-            const currentPos = coinNode.worldPosition;
-            const newPos = new Vec3();
-            Vec3.lerp(newPos, currentPos, targetPosition, deltaTime * this.coinAttractSpeed);
-            coinNode.setWorldPosition(newPos);
+
+            const distanceToTarget = Vec3.distance(coinNode.worldPosition, targetPosition);
+
+            if (distanceToTarget > 1) {
+                const currentPos = coinNode.worldPosition;
+                const newPos = new Vec3();
+                Vec3.lerp(newPos, currentPos, targetPosition, deltaTime * this.coinAttractSpeed);
+                coinNode.setWorldPosition(newPos);
+            }
+            else {
+                coinNode.setWorldPosition(targetPosition);
+            }
         }
     }
 
@@ -131,7 +140,6 @@ export class PlayerSpine extends Component {
         const dropZone = otherCollider.getComponent(DropZoneController);
         if (dropZone) {
             this.activeDropZone = dropZone;
-            // Gọi hàm thả ruby khi va chạm với DropZone
             this.dropOffRubies(dropZone);
         }
     }
@@ -149,50 +157,44 @@ export class PlayerSpine extends Component {
         for (let i = 0; i < this.collectedRubies.length; i++) {
             const rubyNode = this.collectedRubies[i];
             const targetPosition = new Vec3(basePosition.x, basePosition.y + (i * this.rubyStackOffset), basePosition.z);
-            const currentPos = rubyNode.worldPosition;
-            const newPos = new Vec3();
-            Vec3.lerp(newPos, currentPos, targetPosition, deltaTime * this.rubyAttractSpeed);
-            rubyNode.setWorldPosition(newPos);
+
+            const distanceToTarget = Vec3.distance(rubyNode.worldPosition, targetPosition);
+
+            if (distanceToTarget > 1) {
+                const currentPos = rubyNode.worldPosition;
+                const newPos = new Vec3();
+                Vec3.lerp(newPos, currentPos, targetPosition, deltaTime * this.rubyAttractSpeed);
+                rubyNode.setWorldPosition(newPos);
+            }
+            else {
+                rubyNode.setWorldPosition(targetPosition);
+            }
         }
     }
 
-    /**
-     * ✅ ĐÃ SỬA: Hàm thả Ruby đã được tối ưu.
-     * Logic này đảm bảo Ruby bay từ vị trí hiện tại đến đúng tọa độ thế giới trên bàn,
-     * và chỉ đổi parent sau khi đã bay đến nơi để tránh lỗi hiển thị.
-     */
     public dropOffRubies(dropZone: DropZoneController) {
         if (this.collectedRubies.length === 0) {
             return;
         }
-
         const rubiesToDrop = [...this.collectedRubies];
+        GameManager.instance.removeRubies(rubiesToDrop.length);
         this.collectedRubies = [];
-
         let dropIndex = 0;
-        // Dùng while và pop() để lấy ruby từ trên cùng của chồng xuống
         while (rubiesToDrop.length > 0) {
-            const rubyNode = rubiesToDrop.pop(); // Lấy viên ruby trên cùng
+            const rubyNode = rubiesToDrop.pop();
             if (!rubyNode) continue;
-
             const rubyScript = rubyNode.getComponent(RubyController);
             if (rubyScript) {
                 rubyScript.enabled = false;
             }
-
-            // 1. Lấy vị trí đích TỌA ĐỘ THẾ GIỚI từ DropZone
             const finalWorldPos = dropZone.getNextPlacementPosition();
-
-            // 2. Tween animation sử dụng "worldPosition"
             tween(rubyNode)
                 .delay(dropIndex * 0.08)
                 .to(0.4, { worldPosition: finalWorldPos }, { easing: 'quadIn' })
                 .call(() => {
-                    // 3. Sau khi bay tới nơi, mới đăng ký và đổi parent
                     dropZone.registerPlacedRuby(rubyNode);
                 })
                 .start();
-
             dropIndex++;
         }
     }
@@ -202,18 +204,36 @@ export class PlayerSpine extends Component {
         if (allRubies.length === 0) return;
         const playerPos = new Vec2(this.node.worldPosition.x, this.node.worldPosition.y);
         for (const ruby of allRubies) {
-            if (ruby.isCollected) { continue; }
+            if (ruby.isCollected) {
+                continue;
+            }
             const rubyPos = new Vec2(ruby.node.worldPosition.x, ruby.node.worldPosition.y);
             const distance = Vec2.distance(playerPos, rubyPos);
             if (distance <= this.collectionRadius) {
                 ruby.isCollected = true;
                 this.collectedRubies.push(ruby.node);
+                GameManager.instance.addRubies(1);
                 const rubyBody = ruby.getComponent(RigidBody2D);
                 if (rubyBody) {
                     rubyBody.enabled = false;
                 }
             }
         }
+    }
+
+    // ✅ HÀM MỚI ĐƯỢC THÊM VÀO ĐÂY
+    /**
+     * Lấy và trả về node của đồng xu trên cùng trong chồng xu.
+     * Thao tác này sẽ xóa đồng xu khỏi chồng xu của Player.
+     * @returns Node của đồng xu, hoặc null nếu không còn xu.
+     */
+    public takeTopCoin(): Node | null {
+        if (this.collectedCoins.length > 0) {
+            // pop() sẽ lấy và xóa phần tử cuối cùng của mảng (đồng xu trên cùng)
+            const coinNode = this.collectedCoins.pop();
+            return coinNode;
+        }
+        return null;
     }
 
     private getClosestEnemy(): Node | null {

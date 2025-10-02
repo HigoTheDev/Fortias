@@ -13,34 +13,23 @@ enum BuyerState {
 
 @ccclass('BuyerController')
 export class BuyerController extends Component {
-    // --- Animation Properties ---
+    // --- Properties ---
     @property({ type: sp.Skeleton, tooltip: "Component Spine Animation của Buyer." })
     spine: sp.Skeleton = null!;
-
-    // --- Movement Properties ---
     @property
     moveSpeed: number = 100;
-
-    // --- UI Properties for Request Dialog ---
     @property({ type: Node, tooltip: "Node gốc chứa toàn bộ hộp thoại yêu cầu." })
     public requestDialog: Node = null!;
-
     @property({ type: Label, tooltip: "Nhãn hiển thị số lượng Ruby (vd: 7)." })
     public countLabel: Label = null!;
-
     @property({ type: Node, tooltip: "Icon Ruby trong hộp thoại." })
     public rubyIcon: Node = null!;
-
     @property({ type: Sprite, tooltip: "Sprite màu xanh để hiển thị tiến độ." })
     public fillSprite: Sprite = null!;
-
     @property({ type: Node, tooltip: "Icon dấu tích khi hoàn thành." })
     public checkmarkIcon: Node = null!;
-
-    // --- Logic Properties ---
     @property({ type: CCInteger, min: 2, tooltip: "Số Ruby ít nhất mà Buyer có thể yêu cầu." })
     public minRubyRequest: number = 2;
-
     @property({ type: CCInteger, min: 2, tooltip: "Số Ruby nhiều nhất mà Buyer có thể yêu cầu." })
     public maxRubyRequest: number = 5;
 
@@ -54,13 +43,12 @@ export class BuyerController extends Component {
     private isAtFront: boolean = false;
     private originalScaleX: number = 1;
     private coinPrefab: Prefab = null!;
-
     private rubiesToBuy: number = 0;
     private totalRubiesRequired: number = 0;
     private isRequestComplete: boolean = false;
 
     start() {
-        this.originalScaleX = this.node.scale.x;
+        this.originalScaleX = Math.abs(this.node.scale.x);
     }
 
     public init(manager: BuyerManager, points: Node[], table: DropZoneController, coinPrefab: Prefab, skinName: string) {
@@ -68,24 +56,19 @@ export class BuyerController extends Component {
         this.patrolPoints = points;
         this.tableDropZone = table;
         this.coinPrefab = coinPrefab;
-
         this.totalRubiesRequired = randomRangeInt(this.minRubyRequest, this.maxRubyRequest + 1);
         this.rubiesToBuy = this.totalRubiesRequired;
         this.isRequestComplete = false;
 
         if (this.spine) {
             this.spine.setSkin(skinName);
-        } else {
-            console.error("Chưa gán Spine component cho BuyerController!");
         }
 
         if (this.requestDialog) {
             this.requestDialog.active = false;
-            this.fillSprite.node.active = true;
-            this.rubyIcon.active = true;
-            this.countLabel.node.active = true;
-            this.updateDialogUI();
         }
+
+        this.updateDialogUI();
     }
 
     public moveTo(targetPos: Vec3, isAtFront: boolean) {
@@ -121,10 +104,9 @@ export class BuyerController extends Component {
         this.spine.setAnimation(0, 'idle', true);
 
         if (this.currentStage === 'QUEUE') {
+            this.node.setScale(this.originalScaleX, this.node.scale.y, this.node.scale.z);
+
             if (this.isAtFront) {
-                if (this.requestDialog) {
-                    this.requestDialog.active = true;
-                }
                 this.startBuying();
             }
         } else {
@@ -132,7 +114,6 @@ export class BuyerController extends Component {
                 this.currentTarget = this.patrolPoints[2].worldPosition;
                 this.state = BuyerState.MOVING;
             } else if (this.currentTarget.equals(this.patrolPoints[2].worldPosition)) {
-                // ✅ ĐÃ SỬA LỖI: Gọi hàm không có tham số để khớp với BuyerManager.ts
                 this.manager.onBuyerLeftScene();
                 this.node.destroy();
             }
@@ -140,9 +121,28 @@ export class BuyerController extends Component {
     }
 
     private startBuying() {
+        if (this.requestDialog) {
+            this.requestDialog.active = true;
+        }
+
         this.isAtFront = false;
         this.state = BuyerState.BUYING;
         this.buyingLoop();
+    }
+
+    private moveTowards(targetPos: Vec3, deltaTime: number) {
+        this.spine.setAnimation(0, 'run', true);
+        const direction = new Vec3();
+        Vec3.subtract(direction, targetPos, this.node.worldPosition);
+
+        if (direction.x < 0) {
+            this.node.setScale(this.originalScaleX, this.node.scale.y, this.node.scale.z);
+        } else if (direction.x > 0) {
+            this.node.setScale(-this.originalScaleX, this.node.scale.y, this.node.scale.z);
+        }
+
+        direction.normalize();
+        this.node.translate(direction.multiplyScalar(this.moveSpeed * deltaTime));
     }
 
     private buyingLoop() {
@@ -150,29 +150,25 @@ export class BuyerController extends Component {
             this.completeRequest();
             return;
         }
-
         if (this.tableDropZone.hasRubies()) {
             const rubyNode = this.tableDropZone.takeRuby();
             if (rubyNode) {
                 rubyNode.destroy();
             }
-
             this.rubiesToBuy--;
             this.updateDialogUI();
-
-            this.scheduleOnce(() => { this.buyingLoop(); }, 0.25);
+            this.scheduleOnce(() => { this.buyingLoop(); }, 0.05);
         } else {
             this.scheduleOnce(() => {
                 if (this.state === BuyerState.BUYING) {
                     this.buyingLoop();
                 }
-            }, 2.0);
+            }, 1.0);
         }
     }
 
     private spawnCoins() {
         if (!this.coinPrefab || !CoinManager.instance) return;
-
         const createCoin = (delay: number) => {
             this.scheduleOnce(() => {
                 if (!this.isValid) return;
@@ -182,39 +178,18 @@ export class BuyerController extends Component {
                 CoinManager.instance.addCoinToStack(coin);
             }, delay);
         };
-
         for (let i = 0; i < this.totalRubiesRequired; i++) {
             createCoin(i * 0.1);
         }
     }
 
-    private moveTowards(targetPos: Vec3, deltaTime: number) {
-        this.spine.setAnimation(0, 'run', true);
-        const direction = new Vec3();
-        Vec3.subtract(direction, targetPos, this.node.worldPosition);
-        direction.normalize();
-
-        if (this.currentStage === 'QUEUE') {
-            if (direction.x < 0) this.node.setScale(-this.originalScaleX, this.node.scale.y, this.node.scale.z);
-            else this.node.setScale(this.originalScaleX, this.node.scale.y, this.node.scale.z);
-        } else {
-            if (direction.x > 0) this.node.setScale(this.originalScaleX, this.node.scale.y, this.node.scale.z);
-            else if (direction.x < 0) this.node.setScale(-this.originalScaleX, this.node.scale.y, this.node.scale.z);
-        }
-
-        this.node.translate(direction.multiplyScalar(this.moveSpeed * deltaTime));
-    }
-
     private updateDialogUI(): void {
-        if (!this.requestDialog || this.isRequestComplete) return;
-
+        if (!this.requestDialog) return;
         this.rubyIcon.active = true;
         this.countLabel.node.active = true;
         this.checkmarkIcon.active = false;
         this.fillSprite.node.active = true;
-
         this.countLabel.string = `${this.totalRubiesRequired}`;
-
         const rubiesBought = this.totalRubiesRequired - this.rubiesToBuy;
         const fillRatio = rubiesBought / this.totalRubiesRequired;
         this.fillSprite.fillRange = fillRatio;
@@ -223,19 +198,15 @@ export class BuyerController extends Component {
     private completeRequest(): void {
         if (this.isRequestComplete) return;
         this.isRequestComplete = true;
-
         if (this.requestDialog) {
             this.rubyIcon.active = false;
             this.countLabel.node.active = false;
             this.fillSprite.node.active = false;
             this.checkmarkIcon.active = true;
         }
-
-        this.spine.setAnimation(0, 'win', false);
-        this.spine.addAnimation(0, 'idle', true);
-
+        //this.spine.setAnimation(0, 'win', false);
+        //this.spine.addAnimation(0, 'idle', true);
         this.spawnCoins();
-
         this.scheduleOnce(() => {
             this.manager.onBuyerFinishedShopping(this.node);
         }, 1.5);
