@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, sp, Prefab, instantiate } from "cc";
+import { _decorator, Component, Node, sp, Prefab, instantiate, Vec3 } from "cc"; // Thêm Vec3
 import { GoblinController } from "db://assets/Scripts/Enemies/GoblinController";
 import { SupportProjectile } from "./SupportProjectile";
 const { ccclass, property } = _decorator;
@@ -20,11 +20,15 @@ export class Support extends Component {
     @property(Node)
     firePoint: Node = null!;
 
-    @property
-    detectionRange: number = 400;
-
     @property(Prefab)
     ultimateEffectPrefab: Prefab = null!;
+
+    // --- MỚI (Tùy chọn nhưng khuyến khích): Vị trí cho hiệu ứng ulti của NPC ---
+    @property({ type: Node, tooltip: "Vị trí sinh ra hiệu ứng ulti. Nếu để trống, sẽ dùng vị trí của NPC." })
+    ultiEffectPoint: Node = null;
+
+    @property
+    detectionRange: number = 400;
 
     @property
     attackCooldown: number = 1.0;
@@ -41,9 +45,9 @@ export class Support extends Component {
     private currentState: SupportState = SupportState.IDLE;
     private targetGoblin: GoblinController | null = null;
     private lastAttackTime: number = 0;
-
     private projectileCount: number = 0;
 
+    // ... (Các hàm start, update, findTarget, attackLoop không có gì thay đổi) ...
     start() {
         if (!this.spine) {
             this.spine = this.getComponentInChildren(sp.Skeleton)!;
@@ -93,27 +97,32 @@ export class Support extends Component {
         }
     }
 
+
+    // --- HÀM NÀY ĐƯỢC THAY ĐỔI HOÀN TOÀN LOGIC TẠO HIỆU ỨNG ---
     private castUltimate(allTargets: GoblinController[]) {
         console.log("Casting Ultimate!");
         this.currentState = SupportState.ULTIMATE;
 
-        // --- MỚI: Kích hoạt hiệu ứng Particle ---
-        if (this.ultimateEffectPrefab) {
-            const effect = instantiate(this.ultimateEffectPrefab);
-
-            // Thêm hiệu ứng vào scene (cùng cấp với NPC)
-            this.node.parent.addChild(effect);
-
-        }
-        // -----------------------------------------
-
-        // Sắp xếp và chọn mục tiêu (giữ nguyên)
+        // Sắp xếp và chọn mục tiêu TRƯỚC TIÊN
         allTargets.sort((a, b) => {
             const distA = a.node.worldPosition.subtract(this.node.worldPosition).lengthSqr();
             const distB = b.node.worldPosition.subtract(this.node.worldPosition).lengthSqr();
             return distA - distB;
         });
         const ultiTargets = allTargets.slice(0, this.maxUltiTargets);
+
+        // --- BẮT ĐẦU TẠO HIỆU ỨNG ---
+        if (this.ultimateEffectPrefab) {
+            // 1. Tạo hiệu ứng cho chính NPC
+            const npcEffectPos = this.ultiEffectPoint ? this.ultiEffectPoint.worldPosition : this.node.worldPosition;
+            this.spawnUltiEffect(npcEffectPos);
+
+            // 2. Lặp qua các mục tiêu và tạo hiệu ứng cho từng mục tiêu
+            for (const target of ultiTargets) {
+                this.spawnUltiEffect(target.node.worldPosition);
+            }
+        }
+        // --------------------------------
 
         // Chạy animation (giữ nguyên)
         this.spine.setAnimation(0, "skill_1", false);
@@ -135,6 +144,17 @@ export class Support extends Component {
         });
     }
 
+    private spawnUltiEffect(position: Vec3) {
+        if (!this.ultimateEffectPrefab) return;
+        const effect = instantiate(this.ultimateEffectPrefab);
+        this.node.parent.addChild(effect);
+        effect.setWorldPosition(position);
+        const npcIndex = this.node.getSiblingIndex();
+
+        // ...và đặt hiệu ứng vào ngay vị trí đó.
+        // Thao tác này sẽ chèn hiệu ứng vào ngay trước NPC, khiến nó được vẽ ngay phía sau.
+        effect.setSiblingIndex(npcIndex);
+    }
 
     private shootProjectile(target: GoblinController) {
         if (!this.projectilePrefab) return;
