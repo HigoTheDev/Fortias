@@ -5,9 +5,11 @@ const { ccclass, property } = _decorator;
 @ccclass("TankProjectile")
 export class TankProjectile extends Component {
     @property
-    rotationSpeed: number = 360;
+    rotationSpeed: number = 360; // Đảm bảo giá trị này khác 0 trong Inspector
+
     @property(Prefab)
     impactEffectPrefab: Prefab = null!;
+
     private startPos: Vec3 = new Vec3();
     private endPos: Vec3 = new Vec3();
     private height: number = 100;
@@ -24,7 +26,6 @@ export class TankProjectile extends Component {
         this.isRight = isRight;
 
         this.node.setWorldPosition(this.startPos);
-
         this.node.setRotationFromEuler(0, 0, -90);
 
         const scale = this.node.getScale();
@@ -42,7 +43,7 @@ export class TankProjectile extends Component {
         }
 
         this.elapsed += dt;
-        const t = Math.min(this.elapsed / this.duration, 1);
+        let t = this.elapsed / this.duration;
 
         const x = math.lerp(this.startPos.x, this.endPos.x, t);
         const y = math.lerp(this.startPos.y, this.endPos.y, t);
@@ -50,18 +51,27 @@ export class TankProjectile extends Component {
         const pos = new Vec3(x, y + parabola, 0);
         this.node.setWorldPosition(pos);
 
+        const vx = (this.endPos.x - this.startPos.x) / this.duration;
+        const vy_linear = (this.endPos.y - this.startPos.y) / this.duration;
+        // Đạo hàm của thành phần parabol: height * (4 - 8t)
+        const vy_parabolic = (this.height * (4 - 8 * t)) / this.duration;
+        const vy = vy_linear + vy_parabolic;
+        const angleRad = Math.atan2(vy, vx);
+        this.node.angle = math.toDegree(angleRad) + 180;
+        // --------------------------------------------------------
+
+        t = Math.min(t, 1);
+
         if (t >= 1) {
             if (this.targetGoblin && !this.targetGoblin.isDead) {
                 this.targetGoblin.die();
 
-                // TẠO HIỆU ỨNG VA CHẠM TẠI ĐÂY
                 if (this.impactEffectPrefab) {
                     const effect = instantiate(this.impactEffectPrefab);
                     this.node.parent.addChild(effect);
                     effect.setWorldPosition(this.node.worldPosition);
                 }
             }
-
             this.node.destroy();
         }
     }
