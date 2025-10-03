@@ -53,7 +53,6 @@ export class TankProjectile extends Component {
 
         const vx = (this.endPos.x - this.startPos.x) / this.duration;
         const vy_linear = (this.endPos.y - this.startPos.y) / this.duration;
-        // Đạo hàm của thành phần parabol: height * (4 - 8t)
         const vy_parabolic = (this.height * (4 - 8 * t)) / this.duration;
         const vy = vy_linear + vy_parabolic;
         const angleRad = Math.atan2(vy, vx);
