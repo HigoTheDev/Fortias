@@ -13,6 +13,7 @@ export class CameraFollow extends Component{
     private offset: Vec3 = new Vec3();
 
     start(){
+        console.log('start');
         this.offset = this.node.position.clone().subtract(this.target.position);
     }
 
@@ -27,6 +28,8 @@ export class CameraFollow extends Component{
             currentPos.z
         );
 
+        console.log('current position', smoothPos);
         this.node.setPosition(smoothPos);
+        console.log("cameraFollow update", this.node.position);
     }
 }
