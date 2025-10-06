@@ -39,11 +39,10 @@ export class GoblinController extends Component {
         }
         this.originalScale = this.node.getScale();
 
-        const playerComponent = this.node.scene.getComponentInChildren(PlayerSpine);
-        if (playerComponent) {
-            this.playerNode = playerComponent.node;
+        if (PlayerSpine.instance) {
+            this.playerNode = PlayerSpine.instance.node;
         } else {
-            console.error("Goblin không thể tìm thấy Player trong Scene!");
+            console.error(`Goblin "${this.node.name}" không thể tìm thấy instance của Player!`);
             this.isMoving = false;
         }
 
