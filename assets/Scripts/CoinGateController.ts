@@ -1,8 +1,7 @@
-// File: CoinGateController.ts (Đã sửa lỗi tham số)
-import { _decorator, Component, Node, Label, Collider2D, Contact2DType, IPhysics2DContact, CCInteger, randomRangeInt, tween, v3, easing, CCFloat } from 'cc';
+// File: CoinGateController.ts
+import { _decorator, Component, Node, Label, Collider2D, Contact2DType, IPhysics2DContact, tween, v3, easing, CCFloat, macro, Vec3 } from 'cc';
 import { PlayerSpine } from "db://assets/Scripts/Player/PlayerSpine";
 import { GameManager } from "db://assets/Scripts/GameManager";
-import { CoinController } from "db://assets/Scripts/CoinController";
 import { GateManager } from "db://assets/Scripts/GateManager";
 
 const { ccclass, property } = _decorator;
@@ -16,14 +15,14 @@ export class CoinGateController extends Component {
     @property(Node)
     public arrowNode: Node = null!;
 
-    @property({ type: CCInteger, min: 1 })
-    public minCost: number = 10;
-
-    @property({ type: CCInteger, min: 1 })
-    public maxCost: number = 50;
-
     @property({ type: CCFloat, min: 0.01 })
     public drainInterval: number = 0.05;
+
+    @property({ group: { name: "Curved Fly Effect", id: "CFE" }, type: CCFloat, tooltip: "Thời gian bay của một đồng Coin." })
+    public flyDuration: number = 0.4;
+
+    @property({ group: { name: "Curved Fly Effect", id: "CFE" }, type: CCFloat, tooltip: "Độ cao tối đa của đường cong." })
+    public maxFlyHeight: number = 100; // Tăng giá trị mặc định để dễ thấy hơn
 
     // --- Private Variables ---
     private requiredCoins: number = 0;
@@ -32,8 +31,10 @@ export class CoinGateController extends Component {
     private playerScript: PlayerSpine = null;
     private spawnPoint: Node = null;
 
-    public setSpawnPoint(point: Node) {
+    public initialize(point: Node, cost: number) {
         this.spawnPoint = point;
+        this.requiredCoins = cost;
+        this.updateCostLabel();
     }
 
     onLoad() {
@@ -45,13 +46,11 @@ export class CoinGateController extends Component {
     }
 
     start() {
-        this.requiredCoins = randomRangeInt(this.minCost, this.maxCost + 1);
-        this.updateCostLabel();
         if (this.arrowNode) {
             this.animateArrow();
         }
         if (!this.spawnPoint) {
-            console.warn(`Cổng tại node "${this.node.name}" không được gán spawnPoint! Nó sẽ không thể hoạt động đúng.`);
+            console.warn(`Cổng "${this.node.name}" chưa được gán spawnPoint và cost thông qua hàm initialize()!`);
         }
     }
 
@@ -85,7 +84,7 @@ export class CoinGateController extends Component {
     private startCoinDrain() {
         if (this.isDraining) return;
         this.isDraining = true;
-        this.schedule(this.drainOneCoin, this.drainInterval);
+        this.schedule(this.drainOneCoin, this.drainInterval, macro.REPEAT_FOREVER, 0);
     }
 
     private stopCoinDrain() {
@@ -95,45 +94,71 @@ export class CoinGateController extends Component {
     }
 
     private drainOneCoin() {
-        if (this.requiredCoins <= 0 || GameManager.instance.getCurrentCoins() <= 0) {
+        if (this.requiredCoins <= 0 || !this.playerScript || this.playerScript.getCollectedCoinCount() <= 0) {
             this.stopCoinDrain();
             if (this.requiredCoins <= 0) {
                 this.onUnlockSuccess();
             }
             return;
         }
-
-        this.flyCoinFromPlayer();
-        GameManager.instance.addCoins(-1);
-        this.requiredCoins--;
-        this.updateCostLabel();
+        this.flyCoinFromPlayerAndUpdateState();
     }
 
-    private flyCoinFromPlayer() {
+    /**
+     * ✅ CẬP NHẬT LỚN: Sử dụng phương pháp tween một đối tượng giả lập để đảm bảo đường cong ổn định.
+     */
+    private flyCoinFromPlayerAndUpdateState() {
         if (!this.playerScript) return;
+
         const coinNode = this.playerScript.takeTopCoin();
+
         if (coinNode) {
-            const targetPos = this.node.worldPosition;
-            const coinController = coinNode.getComponent(CoinController);
-            if (coinController) {
-                coinController.moveTo(targetPos, () => {
-                    coinNode.destroy();
-                });
-            } else {
-                coinNode.destroy();
-            }
+            GameManager.instance.addCoins(-1);
+            this.requiredCoins--;
+            this.updateCostLabel();
+
+            coinNode.parent = this.node.scene;
+            const startPos = coinNode.worldPosition.clone();
+            const endPos = this.node.worldPosition.clone();
+
+            // Tạo một đối tượng giả lập để tween giá trị 'ratio'
+            const tweenTarget = { ratio: 0 };
+
+            tween(tweenTarget)
+                .to(this.flyDuration, { ratio: 1 }, {
+                    easing: easing.linear, // Để ratio tăng đều
+                    onUpdate: () => {
+                        if (!coinNode.isValid) return; // Dừng lại nếu coin đã bị hủy
+
+                        const ratio = tweenTarget.ratio;
+
+                        // Tính toán vị trí X và Z theo đường thẳng
+                        const newX = startPos.x + (endPos.x - startPos.x) * ratio;
+                        const newZ = startPos.z + (endPos.z - startPos.z) * ratio;
+
+                        // Tính toán vị trí Y (chiều cao) theo đường cong parabol
+                        const heightOffset = this.maxFlyHeight * (ratio * (1 - ratio) * 4);
+                        const newY = startPos.y + (endPos.y - startPos.y) * ratio + heightOffset;
+
+                        coinNode.setWorldPosition(newX, newY, newZ);
+                    }
+                })
+                .call(() => {
+                    if (coinNode.isValid) {
+                        coinNode.destroy();
+                    }
+                })
+                .start();
+        } else {
+            this.stopCoinDrain();
         }
     }
 
     private onUnlockSuccess() {
         this.isUnlocked = true;
-
-        // ✅ SỬA LỖI TẠI ĐÂY:
-        // Truyền `this.spawnPoint` làm tham số khi gọi hàm.
         if (this.spawnPoint && GateManager.instance) {
             GateManager.instance.onGateUnlocked(this.spawnPoint);
         }
-
         tween(this.node)
             .to(0.5, { scale: v3(0, 0, 0) }, { easing: 'backIn' })
             .call(() => {

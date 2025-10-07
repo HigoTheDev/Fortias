@@ -6786,6 +6786,11 @@
         "__expectedType__": "cc.Prefab"
       }
     ],
+    "gateCosts": [
+      30,
+      50,
+      60
+    ],
     "_id": "49+Twww7FIhYktptvC7Qg6"
   },
   {
@@ -7097,10 +7102,12 @@
       "__id__": 106
     },
     "fencePrefab": null,
-    "spawnInterval": 6,
+    "spawnInterval": 1,
     "maxEnemies": 60,
-    "minSpawnGroup": 5,
-    "maxSpawnGroup": 6,
+    "minSpawnGroup": 8,
+    "maxSpawnGroup": 10,
+    "tierOffset": 120,
+    "firstEnemyY": 700,
     "_id": "f1xqef17VCL7b0hav9FrXf"
   },
   {
