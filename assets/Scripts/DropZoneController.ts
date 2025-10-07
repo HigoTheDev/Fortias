@@ -1,3 +1,4 @@
+// File: assets/Scripts/DropZoneController.ts
 import { _decorator, Component, Node, Color, Sprite, Collider2D, Contact2DType, IPhysics2DContact, Vec3 } from 'cc';
 import { PlayerSpine } from "./Player/PlayerSpine";
 
@@ -63,20 +64,10 @@ export class DropZoneController extends Component {
         return worldPosition;
     }
 
-    /**
-     * ✅ ĐÃ CẢI TIẾN: Chống lỗi "nhảy" vị trí của Ruby.
-     * Hàm này sẽ đảm bảo Ruby nằm đúng chỗ sau khi đổi parent.
-     */
     public registerPlacedRuby(rubyNode: Node) {
-        // Lưu lại vị trí thế giới của Ruby TRƯỚC KHI đổi parent
         const worldPos = rubyNode.worldPosition.clone();
-
-        // Đổi parent
         rubyNode.setParent(this.node);
-
-        // Ép nó về lại đúng vị trí thế giới đó sau khi đã đổi parent
         rubyNode.setWorldPosition(worldPos);
-
         this.placedRubies.push(rubyNode);
     }
 
@@ -84,16 +75,10 @@ export class DropZoneController extends Component {
         return this.placedRubies.length > 0;
     }
 
-    /**
-     * ✅ ĐÃ SỬA LỖI LOGIC: Đếm ngược số Ruby chính xác.
-     * Giúp cho việc đặt Ruby mới không bị chồng chéo lên Ruby cũ.
-     */
     public takeRuby(): Node | null {
         if (this.hasRubies()) {
             const rubyToTake = this.placedRubies.pop();
 
-            // Logic mới: Giảm biến đếm của cột cao hơn, vì đó là cột
-            // chứa viên Ruby được đặt xuống sau cùng.
             if (this.rubyCountCol1 > this.rubyCountCol2) {
                 this.rubyCountCol1--;
             } else {
@@ -114,7 +99,6 @@ export class DropZoneController extends Component {
             if (this.sprite) {
                 this.sprite.color = this.activeColor;
             }
-            // Ra lệnh cho Player thả Ruby xuống bàn
             player.dropOffRubies(this);
         }
     }

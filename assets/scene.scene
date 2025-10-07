@@ -7273,37 +7273,6 @@
     "_id": "e9u9eOphVDy70cfV6QVOx7"
   },
   {
-    "__type__": "77410uEwhhPnLj9nps0VZKE",
-    "_name": "",
-    "_objFlags": 0,
-    "node": {
-      "__id__": 353
-    },
-    "_enabled": true,
-    "__prefab": null,
-    "activeColor": {
-      "__type__": "cc.Color",
-      "r": 0,
-      "g": 255,
-      "b": 0,
-      "a": 255
-    },
-    "column1_Offset": {
-      "__type__": "cc.Vec3",
-      "x": 60,
-      "y": 30,
-      "z": 0
-    },
-    "column2_Offset": {
-      "__type__": "cc.Vec3",
-      "x": 60,
-      "y": 10,
-      "z": 0
-    },
-    "rubySpacing": 10,
-    "_id": "38728AZFxAybdieGSU5UC+"
-  },
-  {
     "__type__": "cc.Sprite",
     "_name": "",
     "_objFlags": 0,
@@ -7341,6 +7310,38 @@
     "_useGrayscale": false,
     "_atlas": null,
     "_id": "ac6Ck8L0BC8Z7II7nmOsIm"
+  },
+  {
+    "__type__": "522d5PgD+BGgLJFTLoLP2H5",
+    "_name": "",
+    "_objFlags": 0,
+    "__editorExtras__": {},
+    "node": {
+      "__id__": 353
+    },
+    "_enabled": true,
+    "__prefab": null,
+    "activeColor": {
+      "__type__": "cc.Color",
+      "r": 144,
+      "g": 255,
+      "b": 144,
+      "a": 255
+    },
+    "column1_Offset": {
+      "__type__": "cc.Vec3",
+      "x": 60,
+      "y": -5,
+      "z": 0
+    },
+    "column2_Offset": {
+      "__type__": "cc.Vec3",
+      "x": 60,
+      "y": 5,
+      "z": 0
+    },
+    "rubySpacing": 10,
+    "_id": "b2CYdjbGNCMJkxFIf+sfFv"
   },
   {
     "__type__": "cc.Node",
@@ -7388,9 +7389,10 @@
     "_id": "fesyRhAo1Pe7md5ogTETOA"
   },
   {
-    "__type__": "e4e33l+/C1AkZ+pjDHlp8AA",
+    "__type__": "8184bQamu1C0pzKLK2gj+xn",
     "_name": "",
     "_objFlags": 0,
+    "__editorExtras__": {},
     "node": {
       "__id__": 359
     },
@@ -7408,11 +7410,16 @@
       "female_1",
       "female_2",
       "female_3",
+      "female_4",
+      "female_5",
       "male_1",
-      "male_2"
+      "male_2",
+      "male_3",
+      "male_4",
+      "male_5"
     ],
     "tableDropZone": {
-      "__id__": 357
+      "__id__": 358
     },
     "patrolPoints": [
       {
@@ -7427,7 +7434,7 @@
     ],
     "queueSpacing": 80,
     "maxQueueSize": 10,
-    "_id": "1aGT7QAEJFCqtNEka7T/E1"
+    "_id": "34RHpgHNtL0KeDB8ej35K9"
   },
   {
     "__type__": "cc.Node",
