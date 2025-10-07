@@ -20,6 +20,8 @@ enum PlayerState {
 @ccclass('PlayerSpine')
 export class PlayerSpine extends Component {
     // --- Properties ---
+    public static instance: PlayerSpine = null;
+
     @property(sp.Skeleton) spine: sp.Skeleton = null!;
     @property(RigidBody2D) body: RigidBody2D = null!;
     @property speed: number = 200;
@@ -69,6 +71,16 @@ export class PlayerSpine extends Component {
     public hp: number = 100;
     private state: PlayerState = PlayerState.Idle;
     private activeDropZone: DropZoneController | null = null;
+
+    onLoad() {
+        if (PlayerSpine.instance === null) {
+            PlayerSpine.instance = this;
+        } else {
+            console.warn("Đã có một PlayerSpine khác trong Scene. Hủy bỏ instance này.");
+            this.destroy();
+            return;
+        }
+    }
 
     start() {
         this.originalScaleX = this.node.getScale().x;
