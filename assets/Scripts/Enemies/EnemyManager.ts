@@ -16,8 +16,6 @@ export class EnemyManager extends Component {
     }
 
     removeEnemy(enemy: Node) {
-        // 🔥 SỬA LỖI: Thêm dòng kiểm tra này để tránh lỗi khi đóng scene
-        // Nếu mảng enemies không tồn tại (đã bị hủy), không làm gì cả.
         if (!this.enemies) {
             return;
         }

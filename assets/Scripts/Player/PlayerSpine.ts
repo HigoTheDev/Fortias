@@ -1,11 +1,12 @@
-// File: PlayerSpine.ts (Hoàn chỉnh)
-import { _decorator, Component, sp, input, Input, EventKeyboard, KeyCode, Vec2, RigidBody2D, Node, Collider2D, Contact2DType, IPhysics2DContact, Vec3, tween } from 'cc';
+// File: PlayerSpine.ts
+import { _decorator, Component, sp, input, Input, EventKeyboard, KeyCode, Vec2, RigidBody2D, Node, Collider2D, Contact2DType, IPhysics2DContact, Vec3, tween, easing } from 'cc';
 import { VirtualJoystick } from "db://assets/Scripts/Player/VirtualJoystick";
 import { HPBar } from "db://assets/Scripts/Player/HPBar";
 import { GoblinController } from "db://assets/Scripts/Enemies/GoblinController";
 import { RubyController } from "db://assets/Scripts/RubyController";
 import { DropZoneController } from "db://assets/Scripts/DropZoneController";
 import { GameManager } from "db://assets/Scripts/GameManager";
+import { CoinGateController } from "db://assets/Scripts/CoinGateController";
 
 const { ccclass, property } = _decorator;
 
@@ -31,16 +32,37 @@ export class PlayerSpine extends Component {
     @property aoeRadius: number = 150;
     @property public damage: number = 50;
     @property({ group: 'Ruby Collection', tooltip: "Bán kính hút Ruby." }) collectionRadius: number = 250;
-    @property({ group: 'Ruby Collection', tooltip: "Tốc độ Ruby bay theo Player." }) rubyAttractSpeed: number = 10;
-    @property({ group: 'Ruby Collection', tooltip: "Khoảng cách dọc giữa các viên Ruby." }) rubyStackOffset: number = 8;
-    @property({ group: 'Ruby Collection', tooltip: "Vị trí của chồng Ruby so với Player (x, y)." }) rubyStackPosition: Vec2 = new Vec2(-20, 60);
-    @property({ group: 'Coin Collection', tooltip: "Tốc độ Coin bay theo Player." }) coinAttractSpeed: number = 10;
-    @property({ group: 'Coin Collection', tooltip: "Khoảng cách dọc giữa các đồng xu." }) coinStackOffset: number = 8;
-    @property({ group: 'Coin Collection', tooltip: "Vị trí của chồng Coin so với Player (x, y)." }) coinStackPosition: Vec2 = new Vec2(-20, 0);
+
+    @property({ group: 'Ruby Collection', tooltip: "Tốc độ Ruby bay theo Player." })
+    rubyAttractSpeed: number = 15;
+
+    @property({ group: 'Ruby Collection', tooltip: "Khoảng cách dọc giữa các viên Ruby." })
+    rubyStackOffset: number = 8;
+
+    @property({ group: 'Ruby Collection', tooltip: "Vị trí của chồng Ruby so với Player (x, y)." })
+    rubyStackPosition: Vec2 = new Vec2(-20, 60);
+
+    @property({ group: 'Coin Collection', tooltip: "Tốc độ Coin bay theo Player." })
+    coinAttractSpeed: number = 15;
+
+    @property({ group: 'Coin Collection', tooltip: "Khoảng cách dọc giữa các đồng xu." })
+    coinStackOffset: number = 8;
+
+    @property({ group: 'Coin Collection', tooltip: "Vị trí của chồng Coin so với Player (x, y)." })
+    coinStackPosition: Vec2 = new Vec2(-20, 0);
+
+    @property({ group: 'Coin Collection', tooltip: "Tốc độ tiêu Coin khi đứng ở cổng (giây/coin)." })
+    coinDropOffInterval: number = 0.1;
 
     // --- Private Variables ---
+    public collectedCoins: Node[] = []; // Chuyển sang public để Gate truy cập
     private collectedRubies: Node[] = [];
-    private collectedCoins: Node[] = [];
+    private flyingRubies: Node[] = [];
+    private flyingCoins: Node[] = [];
+
+    private activeCoinGate: Node | null = null;
+    private coinDropOffTimer: number = 0;
+
     private moveDirKeyboard: Vec2 = new Vec2(0, 0);
     private moveDir: Vec2 = new Vec2(0, 0);
     private tempVec2: Vec2 = new Vec2();
@@ -78,24 +100,24 @@ export class PlayerSpine extends Component {
             if (this.body) this.body.linearVelocity = new Vec2(0, 0);
             return;
         }
+
+        this.updateFlyingItems(deltaTime);
         this.checkForNearbyRubies();
-        this.updateRubyStack(deltaTime);
-        this.updateCoinStack(deltaTime);
+        this.updateRubyStack();
+        this.updateCoinStack();
+
+        // --- Logic di chuyển và tấn công giữ nguyên ---
         if (this.state !== PlayerState.Attack) {
             const enemy = this.getClosestEnemy();
             if (enemy) {
                 const dist = Vec2.distance(new Vec2(this.node.worldPosition.x, this.node.worldPosition.y), new Vec2(enemy.worldPosition.x, enemy.worldPosition.y));
-                if (dist <= this.attackRange) {
-                    this.attack(enemy);
-                }
+                if (dist <= this.attackRange) this.attack(enemy);
             }
         }
         let dir = new Vec2(0, 0);
-        if (this.joystick && this.joystick.isUsingJoystic) {
-            dir = this.joystick.getAxis();
-        } else {
-            dir = this.moveDirKeyboard.clone();
-        }
+        if (this.joystick && this.joystick.isUsingJoystic) dir = this.joystick.getAxis();
+        else dir = this.moveDirKeyboard.clone();
+
         if (dir.length() > 1) dir = dir.normalize();
         this.moveDir = dir;
         if (this.body) {
@@ -115,37 +137,13 @@ export class PlayerSpine extends Component {
                 }
             }
         }
-        if (this.moveDir.x > 0) {
-            this.node.setScale(this.originalScaleX, this.node.getScale().y, 1);
-        } else if (this.moveDir.x < 0) {
-            this.node.setScale(-this.originalScaleX, this.node.getScale().y, 1);
-        }
+        if (this.moveDir.x > 0) this.node.setScale(this.originalScaleX, this.node.getScale().y, 1);
+        else if (this.moveDir.x < 0) this.node.setScale(-this.originalScaleX, this.node.getScale().y, 1);
     }
 
-    public receiveCoin(coinNode: Node) {
-        this.collectedCoins.push(coinNode);
-        GameManager.instance.addCoins(1);
-    }
-
-    private updateCoinStack(deltaTime: number) {
-        if (this.collectedCoins.length === 0) return;
-        const basePosition = new Vec3(this.node.worldPosition.x + this.coinStackPosition.x, this.node.worldPosition.y + this.coinStackPosition.y, this.node.worldPosition.z);
-        for (let i = 0; i < this.collectedCoins.length; i++) {
-            const coinNode = this.collectedCoins[i];
-            const targetPosition = new Vec3(basePosition.x, basePosition.y + (i * this.coinStackOffset), basePosition.z);
-
-            const distanceToTarget = Vec3.distance(coinNode.worldPosition, targetPosition);
-
-            if (distanceToTarget > 1) {
-                const currentPos = coinNode.worldPosition;
-                const newPos = new Vec3();
-                Vec3.lerp(newPos, currentPos, targetPosition, deltaTime * this.coinAttractSpeed);
-                coinNode.setWorldPosition(newPos);
-            }
-            else {
-                coinNode.setWorldPosition(targetPosition);
-            }
-        }
+    // ✅ HÀM MỚI: Để CoinGateController kiểm tra số coin thực tế trên người Player
+    public getCollectedCoinCount(): number {
+        return this.collectedCoins.length;
     }
 
     private onBodyBeginContact(selfCollider: Collider2D, otherCollider: Collider2D, contact: IPhysics2DContact | null) {
@@ -163,31 +161,83 @@ export class PlayerSpine extends Component {
         }
     }
 
-    private updateRubyStack(deltaTime: number) {
+    private updateFlyingItems(deltaTime: number) {
+        if (this.flyingRubies.length > 0) {
+            const rubyBasePos = new Vec3(this.node.worldPosition.x + this.rubyStackPosition.x, this.node.worldPosition.y + this.rubyStackPosition.y, this.node.worldPosition.z);
+            const rubyTargetPos = new Vec3(rubyBasePos.x, rubyBasePos.y + (this.collectedRubies.length * this.rubyStackOffset), rubyBasePos.z);
+
+            for (let i = this.flyingRubies.length - 1; i >= 0; i--) {
+                const rubyNode = this.flyingRubies[i];
+                const currentPos = rubyNode.worldPosition;
+                const newPos = new Vec3();
+                Vec3.lerp(newPos, currentPos, rubyTargetPos, deltaTime * this.rubyAttractSpeed);
+                rubyNode.setWorldPosition(newPos);
+
+                if (Vec3.distance(newPos, rubyTargetPos) < 5) {
+                    this.flyingRubies.splice(i, 1);
+                    this.collectedRubies.push(rubyNode);
+                }
+            }
+        }
+        if (this.flyingCoins.length > 0) {
+            const coinBasePos = new Vec3(this.node.worldPosition.x + this.coinStackPosition.x, this.node.worldPosition.y + this.coinStackPosition.y, this.node.worldPosition.z);
+            const coinTargetPos = new Vec3(coinBasePos.x, coinBasePos.y + (this.collectedCoins.length * this.coinStackOffset), coinBasePos.z);
+
+            for (let i = this.flyingCoins.length - 1; i >= 0; i--) {
+                const coinNode = this.flyingCoins[i];
+                const currentPos = coinNode.worldPosition;
+                const newPos = new Vec3();
+                Vec3.lerp(newPos, currentPos, coinTargetPos, deltaTime * this.coinAttractSpeed);
+                coinNode.setWorldPosition(newPos);
+
+                if (Vec3.distance(newPos, coinTargetPos) < 5) {
+                    this.flyingCoins.splice(i, 1);
+                    this.collectedCoins.push(coinNode);
+                }
+            }
+        }
+    }
+    public receiveCoin(coinNode: Node) {
+        GameManager.instance.addCoins(1);
+        this.flyingCoins.push(coinNode);
+    }
+    private checkForNearbyRubies() {
+        const allRubies = this.node.scene.getComponentsInChildren(RubyController);
+        if (allRubies.length === 0) return;
+        const playerPos = new Vec2(this.node.worldPosition.x, this.node.worldPosition.y);
+        for (const ruby of allRubies) {
+            if (ruby.isCollected) continue;
+            const rubyPos = new Vec2(ruby.node.worldPosition.x, ruby.node.worldPosition.y);
+            const distance = Vec2.distance(playerPos, rubyPos);
+            if (distance <= this.collectionRadius) {
+                ruby.isCollected = true;
+                GameManager.instance.addRubies(1);
+                const rubyBody = ruby.getComponent(RigidBody2D);
+                if (rubyBody) rubyBody.enabled = false;
+                this.flyingRubies.push(ruby.node);
+            }
+        }
+    }
+    private updateCoinStack() {
+        if (this.collectedCoins.length === 0) return;
+        const basePosition = new Vec3(this.node.worldPosition.x + this.coinStackPosition.x, this.node.worldPosition.y + this.coinStackPosition.y, this.node.worldPosition.z);
+        for (let i = 0; i < this.collectedCoins.length; i++) {
+            const coinNode = this.collectedCoins[i];
+            const targetPosition = new Vec3(basePosition.x, basePosition.y + (i * this.coinStackOffset), basePosition.z);
+            coinNode.setWorldPosition(targetPosition);
+        }
+    }
+    private updateRubyStack() {
         if (this.collectedRubies.length === 0 || this.activeDropZone) { return; }
         const basePosition = new Vec3(this.node.worldPosition.x + this.rubyStackPosition.x, this.node.worldPosition.y + this.rubyStackPosition.y, this.node.worldPosition.z);
         for (let i = 0; i < this.collectedRubies.length; i++) {
             const rubyNode = this.collectedRubies[i];
             const targetPosition = new Vec3(basePosition.x, basePosition.y + (i * this.rubyStackOffset), basePosition.z);
-
-            const distanceToTarget = Vec3.distance(rubyNode.worldPosition, targetPosition);
-
-            if (distanceToTarget > 1) {
-                const currentPos = rubyNode.worldPosition;
-                const newPos = new Vec3();
-                Vec3.lerp(newPos, currentPos, targetPosition, deltaTime * this.rubyAttractSpeed);
-                rubyNode.setWorldPosition(newPos);
-            }
-            else {
-                rubyNode.setWorldPosition(targetPosition);
-            }
+            rubyNode.setWorldPosition(targetPosition);
         }
     }
-
     public dropOffRubies(dropZone: DropZoneController) {
-        if (this.collectedRubies.length === 0) {
-            return;
-        }
+        if (this.collectedRubies.length === 0) return;
         const rubiesToDrop = [...this.collectedRubies];
         GameManager.instance.removeRubies(rubiesToDrop.length);
         this.collectedRubies = [];
@@ -195,59 +245,22 @@ export class PlayerSpine extends Component {
         while (rubiesToDrop.length > 0) {
             const rubyNode = rubiesToDrop.pop();
             if (!rubyNode) continue;
+            tween(rubyNode).stop();
             const rubyScript = rubyNode.getComponent(RubyController);
-            if (rubyScript) {
-                rubyScript.enabled = false;
-            }
+            if (rubyScript) rubyScript.enabled = false;
             const finalWorldPos = dropZone.getNextPlacementPosition();
             tween(rubyNode)
                 .delay(dropIndex * 0.08)
                 .to(0.4, { worldPosition: finalWorldPos }, { easing: 'quadIn' })
-                .call(() => {
-                    dropZone.registerPlacedRuby(rubyNode);
-                })
+                .call(() => { dropZone.registerPlacedRuby(rubyNode); })
                 .start();
             dropIndex++;
         }
     }
-
-    private checkForNearbyRubies() {
-        const allRubies = this.node.scene.getComponentsInChildren(RubyController);
-        if (allRubies.length === 0) return;
-        const playerPos = new Vec2(this.node.worldPosition.x, this.node.worldPosition.y);
-        for (const ruby of allRubies) {
-            if (ruby.isCollected) {
-                continue;
-            }
-            const rubyPos = new Vec2(ruby.node.worldPosition.x, ruby.node.worldPosition.y);
-            const distance = Vec2.distance(playerPos, rubyPos);
-            if (distance <= this.collectionRadius) {
-                ruby.isCollected = true;
-                this.collectedRubies.push(ruby.node);
-                GameManager.instance.addRubies(1);
-                const rubyBody = ruby.getComponent(RigidBody2D);
-                if (rubyBody) {
-                    rubyBody.enabled = false;
-                }
-            }
-        }
-    }
-
-    // ✅ HÀM MỚI ĐƯỢC THÊM VÀO ĐÂY
-    /**
-     * Lấy và trả về node của đồng xu trên cùng trong chồng xu.
-     * Thao tác này sẽ xóa đồng xu khỏi chồng xu của Player.
-     * @returns Node của đồng xu, hoặc null nếu không còn xu.
-     */
     public takeTopCoin(): Node | null {
-        if (this.collectedCoins.length > 0) {
-            // pop() sẽ lấy và xóa phần tử cuối cùng của mảng (đồng xu trên cùng)
-            const coinNode = this.collectedCoins.pop();
-            return coinNode;
-        }
+        if (this.collectedCoins.length > 0) return this.collectedCoins.pop();
         return null;
     }
-
     private getClosestEnemy(): Node | null {
         const allEnemies = this.node.scene.getComponentsInChildren(GoblinController);
         const aliveEnemies = allEnemies.filter(enemy => !enemy.isDead);
@@ -265,9 +278,8 @@ export class PlayerSpine extends Component {
         }
         return closest;
     }
-
     public attack(triggerEnemy: Node | null) {
-        if (this.state === PlayerState.Die || this.state === PlayerState.Attack) { return; }
+        if (this.state === PlayerState.Die || this.state === PlayerState.Attack) return;
         this.state = PlayerState.Attack;
         if (triggerEnemy) {
             const enemyPos = triggerEnemy.worldPosition;
@@ -292,7 +304,6 @@ export class PlayerSpine extends Component {
             }
         });
     }
-
     public die() {
         if (this.state === PlayerState.Die) return;
         this.state = PlayerState.Die;
@@ -305,14 +316,12 @@ export class PlayerSpine extends Component {
             }
         });
     }
-
     public takeDamage(dmg: number) {
         if (this.state === PlayerState.Die) return;
         this.hp -= dmg;
         this.hp = Math.max(0, this.hp);
         if (this.hp <= 0) this.die();
     }
-
     private onKeyDown(event: EventKeyboard) {
         switch (event.keyCode) {
             case KeyCode.KEY_W: this.moveDirKeyboard.y = 1; break;
@@ -324,7 +333,6 @@ export class PlayerSpine extends Component {
             case KeyCode.KEY_L: this.takeDamage(50); break;
         }
     }
-
     private onKeyUp(event: EventKeyboard) {
         switch (event.keyCode) {
             case KeyCode.KEY_W: if (this.moveDirKeyboard.y > 0) this.moveDirKeyboard.y = 0; break;
