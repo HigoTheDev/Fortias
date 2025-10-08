@@ -255,7 +255,7 @@
       "__uuid__": "9c21faec-78f6-41e7-817f-bb628dfa6b9f",
       "__expectedType__": "cc.Prefab"
     },
-    "ultimateAoeRadius": 40,
+    "ultimateAoeRadius": 20,
     "shotsForUlti": 5,
     "minGoblinsForUlti": 2,
     "_id": ""
