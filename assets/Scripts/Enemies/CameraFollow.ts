@@ -28,8 +28,8 @@ export class CameraFollow extends Component{
             currentPos.z
         );
 
-        console.log('current position', smoothPos);
+        // console.log('current position', smoothPos);
         this.node.setPosition(smoothPos);
-        console.log("cameraFollow update", this.node.position);
+        // console.log("cameraFollow update", this.node.position);
     }
 }
