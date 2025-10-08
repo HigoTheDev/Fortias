@@ -340,6 +340,8 @@
     "firePoint": {
       "__id__": 2
     },
+    "detectionRange": 250,
+    "attackCooldown": 1,
     "ultimateEffectPrefab": {
       "__uuid__": "347b619e-c966-434f-883e-38f9d0e2cc5e",
       "__expectedType__": "cc.Prefab"
@@ -347,8 +349,6 @@
     "ultiEffectPoint": {
       "__id__": 6
     },
-    "detectionRange": 400,
-    "attackCooldown": 1,
     "shotsForUlti": 5,
     "minGoblinsForUlti": 2,
     "maxUltiTargets": 5,

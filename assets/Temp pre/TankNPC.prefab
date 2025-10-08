@@ -249,11 +249,15 @@
     "firePoint": {
       "__id__": 2
     },
-    "detectionRange": 400,
+    "detectionRange": 250,
     "attackCooldown": 1,
+    "ultimateExplosionPrefab": {
+      "__uuid__": "9c21faec-78f6-41e7-817f-bb628dfa6b9f",
+      "__expectedType__": "cc.Prefab"
+    },
+    "ultimateAoeRadius": 40,
     "shotsForUlti": 5,
     "minGoblinsForUlti": 2,
-    "maxUltiTargets": 5,
     "_id": ""
   },
   {
@@ -269,6 +273,7 @@
       "__id__": 0
     },
     "fileId": "6b8Mao/ipAqbbap0ctZ4zG",
+    "instance": null,
     "targetOverrides": null
   }
 ]

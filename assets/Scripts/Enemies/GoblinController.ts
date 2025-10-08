@@ -20,9 +20,13 @@ export class GoblinController extends Component {
     spine: sp.Skeleton = null!;
     @property({ type: Prefab })
     public rubyPrefab: Prefab = null!;
+    @property({
+        type: Prefab,
+        tooltip: "Hiệu ứng xuất hiện khi bị chiêu cuối nhắm tới"
+    })
+    public ultimateTargetEffectPrefab: Prefab = null!;
 
-    // ✅ THÊM: Trạng thái kích hoạt, mặc định là false
-    private isActivated: boolean = false;
+    public isActivated: boolean = false;
     private isMoving: boolean = true;
     private isAttacking: boolean = false;
     public isDead: boolean = false;
@@ -151,8 +155,19 @@ export class GoblinController extends Component {
         });
     }
 
+    public showUltimateTargetEffect() {
+        if (!this.ultimateTargetEffectPrefab) {
+            console.warn("Chưa gán Prefab hiệu ứng cho Goblin:", this.node.name);
+            return;
+        }
+
+        const effect = instantiate(this.ultimateTargetEffectPrefab);
+        this.node.addChild(effect);
+        effect.setPosition(0, 0, 0);
+        effect.setSiblingIndex(0);
+    }
+
     public die() {
-        // ... (Nội dung hàm này giữ nguyên không đổi)
         if (this.isDead) return;
         this.isDead = true;
         this.isMoving = false;

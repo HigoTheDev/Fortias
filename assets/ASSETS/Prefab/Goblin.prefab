@@ -284,9 +284,15 @@
     },
     "moveSpeed": 50,
     "damage": 20,
-    "spine": null,
+    "spine": {
+      "__id__": 5
+    },
     "rubyPrefab": {
       "__uuid__": "f6f1318f-14f0-4ccb-b86f-10cd325344e5",
+      "__expectedType__": "cc.Prefab"
+    },
+    "ultimateTargetEffectPrefab": {
+      "__uuid__": "347b619e-c966-434f-883e-38f9d0e2cc5e",
       "__expectedType__": "cc.Prefab"
     },
     "_id": ""
