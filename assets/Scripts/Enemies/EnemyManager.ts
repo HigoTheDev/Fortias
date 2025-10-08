@@ -1,11 +1,18 @@
 import { _decorator, Component, Node } from 'cc';
-import { GoblinController } from './GoblinController';
 const { ccclass, property } = _decorator;
 
 @ccclass('EnemyManager')
 export class EnemyManager extends Component {
-
+    public static instance: EnemyManager = null;
     private enemies: Node[] = [];
+    onLoad() {
+        if (EnemyManager.instance === null) {
+            EnemyManager.instance = this;
+        } else {
+            this.destroy();
+            return;
+        }
+    }
 
     addEnemy(enemy: Node) {
         this.enemies.push(enemy);
@@ -30,8 +37,13 @@ export class EnemyManager extends Component {
         return this.enemies.length;
     }
 
+    public getActiveEnemies(): readonly Node[] {
+        return this.enemies;
+    }
+
     clearAllEnemies() {
-        for (let enemy of this.enemies) {
+        const enemiesToDestroy = [...this.enemies];
+        for (let enemy of enemiesToDestroy) {
             enemy.destroy();
         }
         this.enemies = [];
