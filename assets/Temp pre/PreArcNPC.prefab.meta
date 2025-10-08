@@ -1,0 +1,13 @@
+﻿{
+  "ver": "1.1.50",
+  "importer": "prefab",
+  "imported": true,
+  "uuid": "8231a4af-0a21-4809-aac6-a215c363e943",
+  "files": [
+    ".json"
+  ],
+  "subMetas": {},
+  "userData": {
+    "syncNodeName": "PreArcNPC"
+  }
+}
