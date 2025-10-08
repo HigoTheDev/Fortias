@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, sp, Prefab, instantiate, Vec3 } from "cc"; // Thêm Vec3
+import { _decorator, Component, Node, sp, Prefab, instantiate, Vec3 } from "cc";
 import { GoblinController } from "db://assets/Scripts/Enemies/GoblinController";
 import { SupportProjectile } from "./SupportProjectile";
 const { ccclass, property } = _decorator;
@@ -20,18 +20,17 @@ export class Support extends Component {
     @property(Node)
     firePoint: Node = null!;
 
-    @property(Prefab)
-    ultimateEffectPrefab: Prefab = null!;
-
-    // --- MỚI (Tùy chọn nhưng khuyến khích): Vị trí cho hiệu ứng ulti của NPC ---
-    @property({ type: Node, tooltip: "Vị trí sinh ra hiệu ứng ulti. Nếu để trống, sẽ dùng vị trí của NPC." })
-    ultiEffectPoint: Node = null;
-
     @property
     detectionRange: number = 400;
 
     @property
     attackCooldown: number = 1.0;
+
+    @property(Prefab)
+    ultimateEffectPrefab: Prefab = null!;
+
+    @property({ type: Node, tooltip: "Vị trí sinh ra hiệu ứng ulti của NPC. Nếu để trống, sẽ dùng vị trí của NPC." })
+    ultiEffectPoint: Node = null;
 
     @property({ type: Number, tooltip: "Số đạn cần bắn trước khi có thể dùng ulti" })
     shotsForUlti: number = 5;
@@ -47,12 +46,43 @@ export class Support extends Component {
     private lastAttackTime: number = 0;
     private projectileCount: number = 0;
 
-    // ... (Các hàm start, update, findTarget, attackLoop không có gì thay đổi) ...
     start() {
         if (!this.spine) {
             this.spine = this.getComponentInChildren(sp.Skeleton)!;
         }
         this.spine.setAnimation(0, "idle", true);
+
+        this.spine.setCompleteListener((trackEntry) => {
+            const animationName = trackEntry.animation.name;
+
+            // 1. Xử lý khi animation ULTIMATE kết thúc
+            if (animationName === 'skill_1') {
+                console.log("Ultimate animation finished. Killing targets.");
+
+                const nearbyGoblins = this.getAllGoblinsInRange();
+                nearbyGoblins.sort((a, b) => {
+                    const distA = a.node.worldPosition.subtract(this.node.worldPosition).lengthSqr();
+                    const distB = b.node.worldPosition.subtract(this.node.worldPosition).lengthSqr();
+                    return distA - distB;
+                });
+                const ultiTargets = nearbyGoblins.slice(0, this.maxUltiTargets);
+
+                for (const target of ultiTargets) {
+                    if (target && !target.isDead) {
+                        target.die();
+                    }
+                }
+
+                this.projectileCount = 0;
+                this.currentState = SupportState.IDLE;
+                this.spine.setAnimation(0, "idle", true);
+
+            } else if (animationName === 'attack_range_1') {
+                if (this.currentState !== SupportState.ULTIMATE) {
+                    this.spine.setAnimation(0, "idle", true);
+                }
+            }
+        });
     }
 
     update(dt: number) {
@@ -64,6 +94,7 @@ export class Support extends Component {
                 this.attackLoop();
                 break;
             case SupportState.ULTIMATE:
+                // Khi đang tung chiêu, không làm gì cả
                 break;
         }
     }
@@ -71,7 +102,7 @@ export class Support extends Component {
     private findTarget() {
         const goblins = this.getAllGoblinsInRange();
         if (goblins.length > 0) {
-            this.targetGoblin = goblins[0];
+            this.targetGoblin = goblins[0]; // Mục tiêu gần nhất
             this.currentState = SupportState.ATTACK;
         }
     }
@@ -86,7 +117,7 @@ export class Support extends Component {
             const nearbyGoblins = this.getAllGoblinsInRange();
             if (nearbyGoblins.length >= this.minGoblinsForUlti) {
                 this.castUltimate(nearbyGoblins);
-                return;
+                return; // Dừng lại để thực hiện ulti
             }
         }
 
@@ -97,13 +128,10 @@ export class Support extends Component {
         }
     }
 
-
-    // --- HÀM NÀY ĐƯỢC THAY ĐỔI HOÀN TOÀN LOGIC TẠO HIỆU ỨNG ---
     private castUltimate(allTargets: GoblinController[]) {
         console.log("Casting Ultimate!");
         this.currentState = SupportState.ULTIMATE;
 
-        // Sắp xếp và chọn mục tiêu TRƯỚC TIÊN
         allTargets.sort((a, b) => {
             const distA = a.node.worldPosition.subtract(this.node.worldPosition).lengthSqr();
             const distB = b.node.worldPosition.subtract(this.node.worldPosition).lengthSqr();
@@ -111,54 +139,23 @@ export class Support extends Component {
         });
         const ultiTargets = allTargets.slice(0, this.maxUltiTargets);
 
-        // --- BẮT ĐẦU TẠO HIỆU ỨNG ---
         if (this.ultimateEffectPrefab) {
-            // 1. Tạo hiệu ứng cho chính NPC
             const npcEffectPos = this.ultiEffectPoint ? this.ultiEffectPoint.worldPosition : this.node.worldPosition;
             this.spawnUltiEffect(npcEffectPos);
-
-            // 2. Lặp qua các mục tiêu và tạo hiệu ứng cho từng mục tiêu
-            for (const target of ultiTargets) {
-                this.spawnUltiEffect(target.node.worldPosition);
+        }
+        for (const target of ultiTargets) {
+            if (target && target.isValid) {
+                target.showUltimateTargetEffect();
             }
         }
-        // --------------------------------
 
-        // Chạy animation (giữ nguyên)
         this.spine.setAnimation(0, "skill_1", false);
-
-        // Lắng nghe sự kiện animation kết thúc (giữ nguyên)
-        this.spine.setCompleteListener((trackEntry) => {
-            if (trackEntry.animation.name === "skill_1") {
-                console.log("Ultimate animation finished. Killing targets.");
-                for (const target of ultiTargets) {
-                    if (target && !target.isDead) {
-                        target.die();
-                    }
-                }
-                this.projectileCount = 0;
-                this.currentState = SupportState.IDLE;
-                this.spine.setAnimation(0, "idle", true);
-                this.spine.setCompleteListener(null);
-            }
-        });
-    }
-
-    private spawnUltiEffect(position: Vec3) {
-        if (!this.ultimateEffectPrefab) return;
-        const effect = instantiate(this.ultimateEffectPrefab);
-        this.node.parent.addChild(effect);
-        effect.setWorldPosition(position);
-        const npcIndex = this.node.getSiblingIndex();
-
-        // ...và đặt hiệu ứng vào ngay vị trí đó.
-        // Thao tác này sẽ chèn hiệu ứng vào ngay trước NPC, khiến nó được vẽ ngay phía sau.
-        effect.setSiblingIndex(npcIndex);
     }
 
     private shootProjectile(target: GoblinController) {
         if (!this.projectilePrefab) return;
         this.spine.setAnimation(0, "attack_range_1", false);
+
         const projectile = instantiate(this.projectilePrefab);
         this.node.parent.addChild(projectile);
         const isRight = target.node.worldPosition.x >= this.node.worldPosition.x;
@@ -168,12 +165,14 @@ export class Support extends Component {
 
         this.projectileCount++;
         console.log(`Projectile count: ${this.projectileCount}`);
+    }
 
-        this.spine.setCompleteListener((trackEntry) => {
-            if (trackEntry.animation.name === "attack_range_1") {
-                this.spine.setAnimation(0, "idle", true);
-            }
-        });
+    private spawnUltiEffect(position: Vec3) {
+        if (!this.ultimateEffectPrefab) return;
+        const effect = instantiate(this.ultimateEffectPrefab);
+        this.node.parent.addChild(effect);
+        effect.setWorldPosition(position);
+        effect.setSiblingIndex(this.node.getSiblingIndex());
     }
 
     private getAllGoblinsInRange(): GoblinController[] {
