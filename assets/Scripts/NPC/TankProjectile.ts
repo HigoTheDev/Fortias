@@ -5,7 +5,7 @@ const { ccclass, property } = _decorator;
 @ccclass("TankProjectile")
 export class TankProjectile extends Component {
     @property
-    rotationSpeed: number = 360; // Đảm bảo giá trị này khác 0 trong Inspector
+    rotationSpeed: number = 360;
 
     @property(Prefab)
     impactEffectPrefab: Prefab = null!;
