@@ -1,6 +1,6 @@
-import { _decorator, Component, Node, sp, Prefab, instantiate, Vec3 } from "cc";
+﻿import { _decorator, Component, Node, sp, Prefab, instantiate, Vec3 } from "cc";
 import { GoblinController } from "db://assets/Scripts/Enemies/GoblinController";
-import { TankProjectile } from "./TankProjectile";
+import { PreArcProjectile} from "db://assets/Scripts/NPC/PreArcProjectile";
 import { EnemyManager } from "db://assets/Scripts/Enemies/EnemyManager";
 
 const { ccclass, property } = _decorator;
@@ -11,9 +11,8 @@ enum TankState {
     ULTIMATE,
 }
 
-@ccclass("Tank")
-export class Tank extends Component {
-    // --- CÁC THUỘC TÍNH CƠ BẢN ---
+@ccclass("PreArc")
+export class PreArc extends Component {
     @property(sp.Skeleton)
     spine: sp.Skeleton = null!;
 
@@ -183,7 +182,7 @@ export class Tank extends Component {
         // ✅ BỔ SUNG: Tính toán lại hướng bắn của Tank so với mục tiêu
         const isRight = target.node.worldPosition.x >= this.node.worldPosition.x;
 
-        const projComp = projectile.getComponent(TankProjectile);
+        const projComp = projectile.getComponent(PreArcProjectile);
 
         // ✅ SỬA LỖI: Truyền thêm tham số 'isRight' vào hàm shoot
         projComp?.shoot(startPos, target, isRight);

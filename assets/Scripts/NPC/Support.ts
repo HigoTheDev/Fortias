@@ -1,6 +1,8 @@
 import { _decorator, Component, Node, sp, Prefab, instantiate, Vec3 } from "cc";
 import { GoblinController } from "db://assets/Scripts/Enemies/GoblinController";
 import { SupportProjectile } from "./SupportProjectile";
+import { EnemyManager } from "db://assets/Scripts/Enemies/EnemyManager"; //
+
 const { ccclass, property } = _decorator;
 
 enum SupportState {
@@ -41,10 +43,21 @@ export class Support extends Component {
     @property({ type: Number, tooltip: "Số lượng mục tiêu tối đa của ulti" })
     maxUltiTargets: number = 5;
 
+    @property({
+        type: Node,
+        tooltip: "Node cha để chứa các viên đạn được bắn ra. Thường là một Node con của Canvas."
+    })
+    public bulletContainer: Node = null;
+
     private currentState: SupportState = SupportState.IDLE;
     private targetGoblin: GoblinController | null = null;
     private lastAttackTime: number = 0;
     private projectileCount: number = 0;
+
+    private ultimateImpactPosition: Vec3 = null;
+
+    private ultimateTimer: number = 0;
+    private readonly ULTIMATE_TIMEOUT: number = 5.0;
 
     start() {
         if (!this.spine) {
@@ -55,20 +68,20 @@ export class Support extends Component {
         this.spine.setCompleteListener((trackEntry) => {
             const animationName = trackEntry.animation.name;
 
-            // 1. Xử lý khi animation ULTIMATE kết thúc
-            if (animationName === 'skill_1') {
-                console.log("Ultimate animation finished. Killing targets.");
+            if (animationName === 'skill_1') { //
+                console.log("Ultimate animation finished. Finding and killing targets now.");
 
-                const nearbyGoblins = this.getAllGoblinsInRange();
-                nearbyGoblins.sort((a, b) => {
-                    const distA = a.node.worldPosition.subtract(this.node.worldPosition).lengthSqr();
-                    const distB = b.node.worldPosition.subtract(this.node.worldPosition).lengthSqr();
-                    return distA - distB;
-                });
-                const ultiTargets = nearbyGoblins.slice(0, this.maxUltiTargets);
+                const allGoblins = this.getAllGoblinsInRange();
 
-                for (const target of ultiTargets) {
-                    if (target && !target.isDead) {
+                allGoblins.sort((a, b) =>
+                    Vec3.squaredDistance(this.ultimateImpactPosition, a.node.worldPosition) -
+                    Vec3.squaredDistance(this.ultimateImpactPosition, b.node.worldPosition)
+                );
+
+                const finalTargets = allGoblins.slice(0, this.maxUltiTargets);
+
+                for (const target of finalTargets) {
+                    if (target && target.isValid && !target.isDead) {
                         target.die();
                     }
                 }
@@ -94,7 +107,13 @@ export class Support extends Component {
                 this.attackLoop();
                 break;
             case SupportState.ULTIMATE:
-                // Khi đang tung chiêu, không làm gì cả
+                this.ultimateTimer += dt;
+                if (this.ultimateTimer >= this.ULTIMATE_TIMEOUT) {
+                    console.warn("ULTIMATE TIMEOUT! Forcing state back to IDLE.");
+                    this.projectileCount = 0;
+                    this.currentState = SupportState.IDLE;
+                    this.spine.setAnimation(0, "idle", true);
+                }
                 break;
         }
     }
@@ -102,14 +121,19 @@ export class Support extends Component {
     private findTarget() {
         const goblins = this.getAllGoblinsInRange();
         if (goblins.length > 0) {
-            this.targetGoblin = goblins[0]; // Mục tiêu gần nhất
+            goblins.sort((a, b) =>
+                Vec3.squaredDistance(this.node.worldPosition, a.node.worldPosition) -
+                Vec3.squaredDistance(this.node.worldPosition, b.node.worldPosition)
+            );
+            this.targetGoblin = goblins[0];
             this.currentState = SupportState.ATTACK;
         }
     }
 
     private attackLoop() {
-        if (!this.targetGoblin || this.targetGoblin.isDead || !this.targetGoblin.node.isValid) {
+        if (!this.targetGoblin || !this.targetGoblin.isValid || this.targetGoblin.isDead) {
             this.currentState = SupportState.IDLE;
+            this.targetGoblin = null;
             return;
         }
 
@@ -117,7 +141,7 @@ export class Support extends Component {
             const nearbyGoblins = this.getAllGoblinsInRange();
             if (nearbyGoblins.length >= this.minGoblinsForUlti) {
                 this.castUltimate(nearbyGoblins);
-                return; // Dừng lại để thực hiện ulti
+                return;
             }
         }
 
@@ -128,22 +152,28 @@ export class Support extends Component {
         }
     }
 
-    private castUltimate(allTargets: GoblinController[]) {
+    private castUltimate(nearbyGoblins: GoblinController[]) {
         console.log("Casting Ultimate!");
         this.currentState = SupportState.ULTIMATE;
+        this.ultimateTimer = 0;
 
-        allTargets.sort((a, b) => {
-            const distA = a.node.worldPosition.subtract(this.node.worldPosition).lengthSqr();
-            const distB = b.node.worldPosition.subtract(this.node.worldPosition).lengthSqr();
-            return distA - distB;
-        });
-        const ultiTargets = allTargets.slice(0, this.maxUltiTargets);
+        if (nearbyGoblins.length > 0) {
+            nearbyGoblins.sort((a, b) =>
+                Vec3.squaredDistance(this.node.worldPosition, a.node.worldPosition) -
+                Vec3.squaredDistance(this.node.worldPosition, b.node.worldPosition)
+            );
+            this.ultimateImpactPosition = nearbyGoblins[0].node.worldPosition.clone();
+        } else {
+            this.ultimateImpactPosition = this.node.worldPosition.clone();
+        }
 
         if (this.ultimateEffectPrefab) {
             const npcEffectPos = this.ultiEffectPoint ? this.ultiEffectPoint.worldPosition : this.node.worldPosition;
             this.spawnUltiEffect(npcEffectPos);
         }
-        for (const target of ultiTargets) {
+
+        const potentialTargets = nearbyGoblins.slice(0, this.maxUltiTargets);
+        for (const target of potentialTargets) {
             if (target && target.isValid) {
                 target.showUltimateTargetEffect();
             }
@@ -154,38 +184,52 @@ export class Support extends Component {
 
     private shootProjectile(target: GoblinController) {
         if (!this.projectilePrefab) return;
+        if (!this.bulletContainer) {
+            console.error("Bullet Container chưa được gán trong Inspector!");
+            return;
+        }
+
         this.spine.setAnimation(0, "attack_range_1", false);
 
         const projectile = instantiate(this.projectilePrefab);
-        this.node.parent.addChild(projectile);
+        this.bulletContainer.addChild(projectile);
+
         const isRight = target.node.worldPosition.x >= this.node.worldPosition.x;
         const startPos = this.firePoint ? this.firePoint.worldPosition : this.node.worldPosition;
+
         const projComp = projectile.getComponent(SupportProjectile);
         projComp?.shoot(startPos, target, isRight);
 
         this.projectileCount++;
-        console.log(`Projectile count: ${this.projectileCount}`);
     }
 
     private spawnUltiEffect(position: Vec3) {
-        if (!this.ultimateEffectPrefab) return;
+        console.log("--- BẮT ĐẦU SPAWN ULTI EFFECT ---"); // LOG 4
+        if (!this.ultimateEffectPrefab) {
+            console.error("LỖI: ultimateEffectPrefab là NULL trong hàm spawn!");
+            return;
+        }
         const effect = instantiate(this.ultimateEffectPrefab);
         this.node.parent.addChild(effect);
         effect.setWorldPosition(position);
-        effect.setSiblingIndex(this.node.getSiblingIndex());
+        effect.setSiblingIndex(3);
+
+        console.log("Effect đã được tạo tại vị trí:", effect.worldPosition);
     }
 
     private getAllGoblinsInRange(): GoblinController[] {
-        const allGoblins = this.node.scene.getComponentsInChildren(GoblinController);
-        const validGoblins: GoblinController[] = [];
+        const allEnemyNodes = EnemyManager.instance.getActiveEnemies();
+        const goblinsInRange: GoblinController[] = [];
 
-        for (const g of allGoblins) {
-            if (g.isDead) continue;
-            const dist = g.node.worldPosition.subtract(this.node.worldPosition).length();
-            if (dist <= this.detectionRange) {
-                validGoblins.push(g);
+        for (const enemyNode of allEnemyNodes) {
+            const distSqr = Vec3.squaredDistance(this.node.worldPosition, enemyNode.worldPosition);
+            if (distSqr <= this.detectionRange * this.detectionRange) {
+                const goblinComp = enemyNode.getComponent(GoblinController);
+                if (goblinComp && !goblinComp.isDead) {
+                    goblinsInRange.push(goblinComp);
+                }
             }
         }
-        return validGoblins;
+        return goblinsInRange;
     }
 }

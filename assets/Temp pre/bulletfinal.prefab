@@ -248,7 +248,7 @@
       "__id__": 15
     },
     "duration": 50,
-    "loop": true,
+    "loop": false,
     "simulationSpeed": 1,
     "playOnAwake": true,
     "gravityModifier": {
@@ -1136,7 +1136,7 @@
       "__id__": 77
     },
     "duration": 50,
-    "loop": true,
+    "loop": false,
     "simulationSpeed": 2,
     "playOnAwake": true,
     "gravityModifier": {
@@ -2024,7 +2024,7 @@
       "__id__": 139
     },
     "duration": 50,
-    "loop": true,
+    "loop": false,
     "simulationSpeed": 5,
     "playOnAwake": true,
     "gravityModifier": {
@@ -2912,7 +2912,7 @@
       "__id__": 201
     },
     "duration": 50,
-    "loop": true,
+    "loop": false,
     "simulationSpeed": 5,
     "playOnAwake": true,
     "gravityModifier": {
@@ -3747,7 +3747,7 @@
       "__id__": 262
     },
     "duration": 50,
-    "loop": true,
+    "loop": false,
     "simulationSpeed": 1,
     "playOnAwake": true,
     "gravityModifier": {
@@ -4434,7 +4434,7 @@
       "__id__": 320
     },
     "duration": 50,
-    "loop": true,
+    "loop": false,
     "simulationSpeed": 1,
     "playOnAwake": true,
     "gravityModifier": {
