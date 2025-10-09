@@ -228,7 +228,7 @@
     "fileId": "94Ys/MhNpODr5KiMaMix6+"
   },
   {
-    "__type__": "e4adbU7BdZDYID2mpw5yWcy",
+    "__type__": "244b0yM059CRJK0+LTMaDYa",
     "_name": "",
     "_objFlags": 0,
     "__editorExtras__": {},
@@ -243,14 +243,13 @@
       "__id__": 8
     },
     "projectilePrefab": {
-      "__uuid__": "9a4de63d-645c-4f6f-8ee0-b3535558cb47",
+      "__uuid__": "699993e8-8b8d-4080-98f7-a3549d438107",
       "__expectedType__": "cc.Prefab"
     },
     "firePoint": {
       "__id__": 2
     },
-    "objectContainer": null,
-    "detectionRange": 400,
+    "detectionRange": 250,
     "attackCooldown": 1,
     "ultimateExplosionPrefab": null,
     "ultimateAoeRadius": 150,
@@ -261,7 +260,7 @@
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "dfAyCND/hBf6yO4BcmEGCH"
+    "fileId": "55kvm2U4BNpZRPkpmV5ff+"
   },
   {
     "__type__": "cc.PrefabInfo",
