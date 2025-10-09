@@ -47,7 +47,6 @@ export class GoblinController extends Component {
         this.currentHealth = this.maxHealth;
         this.isDead = false;
 
-        // Tìm người chơi trong scene
         const playerComponent = this.node.scene.getComponentInChildren(PlayerSpine);
         if (playerComponent) {
             this.playerNode = playerComponent.node;
@@ -55,14 +54,12 @@ export class GoblinController extends Component {
             console.error("Goblin không thể tìm thấy Player trong Scene!");
         }
 
-        // Thiết lập va chạm
         const collider = this.getComponent(Collider2D);
         if (collider) {
             collider.on(Contact2DType.BEGIN_CONTACT, this.onBeginContact, this);
             collider.on(Contact2DType.END_CONTACT, this.onEndContact, this);
         }
 
-        // Bắt đầu với animation idle
         this.spine.setAnimation(0, "idle", true);
     }
 
@@ -72,11 +69,9 @@ export class GoblinController extends Component {
         }
 
         if (this.isMoving && this.playerNode) {
-            // Di chuyển về phía người chơi
             const direction = new Vec3();
             Vec3.subtract(direction, this.playerNode.worldPosition, this.node.worldPosition);
 
-            // Quay mặt Goblin
             if (direction.x > 0) {
                 this.node.setScale(this.originalScale);
             } else if (direction.x < 0) {
@@ -89,25 +84,15 @@ export class GoblinController extends Component {
         this.setAnimation();
     }
 
-    /**
-     * Kích hoạt Goblin, được gọi từ EnemySpawner.
-     */
     public activate() {
         if (this.isDead) return;
         this.isActivated = true;
         this.setAnimation();
     }
 
-    /**
-     * Hàm nhận sát thương từ người chơi hoặc trụ.
-     * @param damageAmount Lượng sát thương nhận vào.
-     */
     public takeDamage(damageAmount: number) {
         if (this.isDead) return;
-
         this.currentHealth -= damageAmount;
-
-        // Hiệu ứng nháy đỏ khi bị đánh
         this.spine.color = Color.RED;
         this.scheduleOnce(() => {
             if(this.spine) this.spine.color = Color.WHITE;
@@ -121,21 +106,21 @@ export class GoblinController extends Component {
     onBeginContact(selfCollider: Collider2D, otherCollider: Collider2D, contact: IPhysics2DContact | null) {
         if (!this.isActivated || this.isDead || this.isAttacking) return;
 
-        // Va chạm với hàng rào
         const fenceScript = otherCollider.getComponent(Fence);
         if (fenceScript) {
             this.isMoving = false;
             this.targetFenceScript = fenceScript;
+            this.isAttacking = true;
             this.startAttackCycle();
             return;
         }
 
-        // Va chạm với cửa
         if (otherCollider.node.name === 'Door_obj') {
             const doorScript = otherCollider.node.parent?.getComponent(DoorController);
             if (doorScript) {
                 this.isMoving = false;
                 this.targetDoorScript = doorScript;
+                this.isAttacking = true;
                 this.startAttackCycle();
                 return;
             }
@@ -161,7 +146,6 @@ export class GoblinController extends Component {
     startAttackCycle() {
         if (this.isDead || !this.isAttacking) return;
 
-        // Kiểm tra mục tiêu còn tồn tại không
         if ((!this.targetFenceScript || !this.targetFenceScript.isValid) &&
             (!this.targetDoorScript || !this.targetDoorScript.isValid))
         {
@@ -169,10 +153,8 @@ export class GoblinController extends Component {
             return;
         }
 
-        this.isAttacking = true;
         this.spine.setAnimation(0, "attack_melee_1", false);
 
-        // Gây sát thương sau một khoảng trễ của animation
         this.scheduleOnce(() => {
             if (this.isAttacking && !this.isDead) {
                 this.targetFenceScript?.takeDamage(this.damage);
@@ -180,7 +162,6 @@ export class GoblinController extends Component {
             }
         }, 0.3);
 
-        // Lặp lại chu kỳ tấn công
         this.spine.setCompleteListener(() => {
             if (this.isDead || !this.isAttacking) return;
 
@@ -193,9 +174,7 @@ export class GoblinController extends Component {
         });
     }
 
-    /**
-     * Hiển thị hiệu ứng khi bị chiêu cuối của người chơi nhắm đến.
-     */
+
     public showUltimateTargetEffect() {
         if (!this.ultimateTargetEffectPrefab) {
             console.warn("Chưa gán Prefab hiệu ứng cho Goblin:", this.node.name);
@@ -204,12 +183,9 @@ export class GoblinController extends Component {
         const effect = instantiate(this.ultimateTargetEffectPrefab);
         this.node.addChild(effect);
         effect.setPosition(0, 0, 0);
-        effect.setSiblingIndex(0); // Đảm bảo hiệu ứng nằm dưới Goblin
+        effect.setSiblingIndex(0);
     }
 
-    /**
-     * Xử lý logic khi Goblin chết.
-     */
     public die() {
         if (this.isDead) return;
         this.isDead = true;
@@ -217,14 +193,12 @@ export class GoblinController extends Component {
         this.isAttacking = false;
         this.unscheduleAllCallbacks();
 
-        // Rơi ra Ruby
         if (this.rubyPrefab) {
             const rubyNode = instantiate(this.rubyPrefab);
             this.node.parent?.addChild(rubyNode);
             rubyNode.setWorldPosition(this.node.worldPosition);
         }
 
-        // Chạy animation chết
         this.spine.setAnimation(0, "die", false);
         this.spine.setCompleteListener((trackEntry) => {
             if (trackEntry.animation.name === "die") {
@@ -233,9 +207,6 @@ export class GoblinController extends Component {
         });
     }
 
-    /**
-     * Cập nhật animation dựa trên trạng thái hiện tại.
-     */
     setAnimation() {
         if (this.isDead || this.isAttacking) return;
 

@@ -5,7 +5,7 @@ import { EnemyManager } from "db://assets/Scripts/Enemies/EnemyManager";
 
 const { ccclass, property } = _decorator;
 
-enum TankState {
+enum PreArcState {
     IDLE,
     ATTACK,
     ULTIMATE,
@@ -22,10 +22,6 @@ export class PreArc extends Component {
     @property(Node)
     firePoint: Node = null!;
 
-    @property({
-        type: Node,
-        tooltip: "Node cha để chứa đạn và hiệu ứng. Thường là một Node con của Canvas."
-    })
     public objectContainer: Node = null;
 
     @property
@@ -34,7 +30,6 @@ export class PreArc extends Component {
     @property
     attackCooldown: number = 1.0;
 
-    // --- CÁC THUỘC TÍNH CHIÊU CUỐI ---
     @property({ type: Prefab, tooltip: "Prefab hiệu ứng nổ của chiêu cuối" })
     ultimateExplosionPrefab: Prefab = null!;
 
@@ -47,21 +42,21 @@ export class PreArc extends Component {
     @property({ type: Number, tooltip: "Số lượng quái tối thiểu để kích hoạt ulti" })
     minGoblinsForUlti: number = 2;
 
-    // ✅ BỔ SUNG: Thuộc tính mới để điều chỉnh độ trễ của hiệu ứng ultimate
     @property({
         type: Number,
         tooltip: "Độ trễ (giây) từ lúc bắt đầu animation ulti đến khi hiệu ứng nổ xuất hiện."
     })
     public ultimateEffectDelay: number = 0.5;
 
-    // --- CÁC BIẾN TRẠNG THÁI ---
-    private currentState: TankState = TankState.IDLE;
+    private currentState: PreArcState = PreArcState.IDLE;
     private targetGoblin: GoblinController | null = null;
     private lastAttackTime: number = 0;
     private projectileCount: number = 0;
     private ultimateImpactPosition: Vec3 = null;
 
     start() {
+        this.objectContainer = new Node('NPC_bullet-container');
+        this.node.parent.addChild(this.objectContainer);
         if (!this.spine) {
             this.spine = this.getComponentInChildren(sp.Skeleton)!;
         }
@@ -70,13 +65,12 @@ export class PreArc extends Component {
         this.spine.setCompleteListener((trackEntry) => {
             const animationName = trackEntry.animation.name;
 
-            // ✅ THAY ĐỔI: Listener giờ chỉ còn nhiệm vụ reset trạng thái
             if (animationName === 'skill_1') {
                 this.projectileCount = 0;
-                this.currentState = TankState.IDLE;
+                this.currentState = PreArcState.IDLE;
                 this.spine.setAnimation(0, "idle", true);
             } else if (animationName === 'attack_range_1') {
-                if (this.currentState !== TankState.ULTIMATE) {
+                if (this.currentState !== PreArcState.ULTIMATE) {
                     this.spine.setAnimation(0, "idle", true);
                 }
             }
@@ -85,13 +79,13 @@ export class PreArc extends Component {
 
     update(dt: number) {
         switch (this.currentState) {
-            case TankState.IDLE:
+            case PreArcState.IDLE:
                 this.findTarget();
                 break;
-            case TankState.ATTACK:
+            case PreArcState.ATTACK:
                 this.attackLoop();
                 break;
-            case TankState.ULTIMATE:
+            case PreArcState.ULTIMATE:
                 break;
         }
     }
@@ -104,13 +98,13 @@ export class PreArc extends Component {
                 Vec3.squaredDistance(this.node.worldPosition, b.node.worldPosition)
             );
             this.targetGoblin = goblins[0];
-            this.currentState = TankState.ATTACK;
+            this.currentState = PreArcState.ATTACK;
         }
     }
 
     private attackLoop() {
         if (!this.targetGoblin || !this.targetGoblin.isValid || this.targetGoblin.isDead) {
-            this.currentState = TankState.IDLE;
+            this.currentState = PreArcState.IDLE;
             this.targetGoblin = null;
             return;
         }
@@ -132,7 +126,7 @@ export class PreArc extends Component {
 
     private castUltimate() {
         console.log("Casting AOE Ultimate!");
-        this.currentState = TankState.ULTIMATE;
+        this.currentState = PreArcState.ULTIMATE;
         const nearbyGoblins = this.getAllGoblinsInRange();
         nearbyGoblins.sort((a, b) =>
             Vec3.squaredDistance(this.node.worldPosition, a.node.worldPosition) -
@@ -145,11 +139,9 @@ export class PreArc extends Component {
         }
         this.spine.setAnimation(0, "skill_1", false);
 
-        // ✅ THAY ĐỔI: Hẹn giờ để kích hoạt hiệu ứng và sát thương sớm hơn
         this.scheduleOnce(this.triggerUltimateDamageAndEffect, this.ultimateEffectDelay);
     }
 
-    // ✅ BỔ SUNG: Hàm mới để xử lý sát thương và hiệu ứng
     private triggerUltimateDamageAndEffect() {
         console.log(`Triggering AOE damage and effect after ${this.ultimateEffectDelay}s`);
         const allEnemyNodes = EnemyManager.instance.getActiveEnemies();
@@ -173,18 +165,11 @@ export class PreArc extends Component {
             return;
         }
         this.spine.setAnimation(0, "attack_range_1", false);
-
         const projectile = instantiate(this.projectilePrefab);
         this.objectContainer.addChild(projectile);
-
         const startPos = this.firePoint ? this.firePoint.worldPosition : this.node.worldPosition;
-
-        // ✅ BỔ SUNG: Tính toán lại hướng bắn của Tank so với mục tiêu
         const isRight = target.node.worldPosition.x >= this.node.worldPosition.x;
-
         const projComp = projectile.getComponent(PreArcProjectile);
-
-        // ✅ SỬA LỖI: Truyền thêm tham số 'isRight' vào hàm shoot
         projComp?.shoot(startPos, target, isRight);
 
         this.projectileCount++;
