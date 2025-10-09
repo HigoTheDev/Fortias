@@ -6,7 +6,6 @@ import { GoblinController } from "db://assets/Scripts/Enemies/GoblinController";
 import { RubyController } from "db://assets/Scripts/RubyController";
 import { DropZoneController } from "db://assets/Scripts/DropZoneController";
 import { GameManager } from "db://assets/Scripts/GameManager";
-import { EnemyManager } from "db://assets/Scripts/Enemies/EnemyManager";
 import { CoinGateController } from "db://assets/Scripts/CoinGateController";
 
 const { ccclass, property } = _decorator;
@@ -287,25 +286,18 @@ export class PlayerSpine extends Component {
         return null;
     }
     private getClosestEnemy(): Node | null {
-        // Lấy danh sách từ Manager, cực nhanh!
-        const aliveEnemies = EnemyManager.instance.getActiveEnemies();
-
+        const allEnemies = this.node.scene.getComponentsInChildren(GoblinController);
+        const aliveEnemies = allEnemies.filter(enemy => !enemy.isDead);
         if (aliveEnemies.length === 0) return null;
-
         let closest: Node = null;
         let minDist = Infinity;
         const playerPos = new Vec2(this.node.worldPosition.x, this.node.worldPosition.y);
-
-        for (const enemyNode of aliveEnemies) {
-            // Lấy component Goblin từ node
-            const enemyComp = enemyNode.getComponent(GoblinController);
-            if (enemyComp && !enemyComp.isDead) {
-                const enemyPos = new Vec2(enemyNode.worldPosition.x, enemyNode.worldPosition.y);
-                const dist = Vec2.distance(playerPos, enemyPos);
-                if (dist < minDist) {
-                    minDist = dist;
-                    closest = enemyNode;
-                }
+        for (const enemy of aliveEnemies) {
+            const enemyPos = new Vec2(enemy.node.worldPosition.x, enemy.node.worldPosition.y);
+            const dist = Vec2.distance(playerPos, enemyPos);
+            if (dist < minDist) {
+                minDist = dist;
+                closest = enemy.node;
             }
         }
         return closest;
