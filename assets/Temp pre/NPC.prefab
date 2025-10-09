@@ -32,13 +32,10 @@
     "_components": [
       {
         "__id__": 26
-      },
-      {
-        "__id__": 28
       }
     ],
     "_prefab": {
-      "__id__": 30
+      "__id__": 28
     },
     "_lpos": {
       "__type__": "cc.Vec3",
@@ -667,34 +664,6 @@
   {
     "__type__": "cc.CompPrefabInfo",
     "fileId": "52fSok8DRCNZy6OSoXs8ik"
-  },
-  {
-    "__type__": "b7498Q/QtBEWqPA06+MEVc6",
-    "_name": "",
-    "_objFlags": 0,
-    "__editorExtras__": {},
-    "node": {
-      "__id__": 1
-    },
-    "_enabled": true,
-    "__prefab": {
-      "__id__": 29
-    },
-    "diamondLabel": {
-      "__id__": 12
-    },
-    "bubble": {
-      "__id__": 8
-    },
-    "requiredDiamonds": 5,
-    "goldPrefab": null,
-    "table": null,
-    "tradeZone": null,
-    "_id": ""
-  },
-  {
-    "__type__": "cc.CompPrefabInfo",
-    "fileId": "d0c37vE8VFULFcwjlOFmFV"
   },
   {
     "__type__": "cc.PrefabInfo",

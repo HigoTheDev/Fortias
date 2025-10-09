@@ -2,12 +2,12 @@
   "ver": "1.1.50",
   "importer": "prefab",
   "imported": true,
-  "uuid": "fb7c9023-a768-4f81-aaf8-50ed551d8d1b",
+  "uuid": "e5de9a01-861c-46ed-95e0-c30689a1caf7",
   "files": [
     ".json"
   ],
   "subMetas": {},
   "userData": {
-    "syncNodeName": "bullet container"
+    "syncNodeName": "MageNPC"
   }
 }

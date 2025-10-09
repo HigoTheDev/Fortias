@@ -2,12 +2,12 @@
   "ver": "1.1.50",
   "importer": "prefab",
   "imported": true,
-  "uuid": "fb7c9023-a768-4f81-aaf8-50ed551d8d1b",
+  "uuid": "492a015e-35f8-4af3-9cd3-79d8a999b48b",
   "files": [
     ".json"
   ],
   "subMetas": {},
   "userData": {
-    "syncNodeName": "bullet container"
+    "syncNodeName": "ImpactEffect-001"
   }
 }

@@ -2,7 +2,7 @@
 import { GoblinController } from "db://assets/Scripts/Enemies/GoblinController";
 import { PreArcProjectile } from "db://assets/Scripts/NPC/PreArcProjectile";
 import { EnemyManager } from "db://assets/Scripts/Enemies/EnemyManager";
-import { GameManager } from "db://assets/Scripts/GameManager"; //
+import { GameManager } from "db://assets/Scripts/GameManager";
 
 const { ccclass, property } = _decorator;
 
@@ -156,24 +156,24 @@ export class PreArc extends Component {
     }
 
     private shootProjectile(target: GoblinController) {
-        if (!this.projectilePrefab) return;
-
-        const container = GameManager.instance.objectContainer;
-        if (!container) {
-            console.error(`Object Container chưa được gán trong GameManager! PreArc: ${this.node.name}`);
-            return;
-        }
-
-        this.spine.setAnimation(0, "attack_range_1", false);
-        const projectile = instantiate(this.projectilePrefab);
-        container.addChild(projectile);
-
-        const startPos = this.firePoint ? this.firePoint.worldPosition : this.node.worldPosition;
-        const isRight = target.node.worldPosition.x >= this.node.worldPosition.x;
-        const projComp = projectile.getComponent(PreArcProjectile);
-        projComp?.shoot(startPos, target, isRight);
-
-        this.projectileCount++;
+        // if (!this.projectilePrefab) return;
+        //
+        // const container = GameManager.instance.objectContainer;
+        // if (!container) {
+        //     console.error(`Object Container chưa được gán trong GameManager! PreArc: ${this.node.name}`);
+        //     return;
+        // }
+        //
+        // this.spine.setAnimation(0, "attack_range_1", false);
+        // const projectile = instantiate(this.projectilePrefab);
+        // container.addChild(projectile);
+        //
+        // const startPos = this.firePoint ? this.firePoint.worldPosition : this.node.worldPosition;
+        // const isRight = target.node.worldPosition.x >= this.node.worldPosition.x;
+        // const projComp = projectile.getComponent(PreArcProjectile);
+        // projComp?.shoot(startPos, target, isRight);
+        //
+        // this.projectileCount++;
     }
 
     private spawnUltimateExplosion(position: Vec3) {

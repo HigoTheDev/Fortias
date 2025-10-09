@@ -139,7 +139,7 @@
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "e75v+jdQ5FWq1TNtBT0lTo"
+    "fileId": "7df16+HuxB0I5GeWk2JL4k"
   },
   {
     "__type__": "cc.PrefabInfo",
@@ -149,7 +149,7 @@
     "asset": {
       "__id__": 0
     },
-    "fileId": "57/Z7YveBCU4xSFi8LGtzd",
+    "fileId": "82z2NUttlPFZypdf5FsWY2",
     "instance": null,
     "targetOverrides": null,
     "nestedPrefabInstanceRoots": null
@@ -180,7 +180,7 @@
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "05zdo3hZtJYbkQnnViRVPg"
+    "fileId": "b00yusuz9MEJS/kogjr8Ml"
   },
   {
     "__type__": "sp.Skeleton",
@@ -225,10 +225,10 @@
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "94Ys/MhNpODr5KiMaMix6+"
+    "fileId": "d9wdp6Y3tIZ4E9PVs/Qeep"
   },
   {
-    "__type__": "244b0yM059CRJK0+LTMaDYa",
+    "__type__": "e6d0e0GGDNGa6KWAiJgmEu/",
     "_name": "",
     "_objFlags": 0,
     "__editorExtras__": {},
@@ -243,13 +243,13 @@
       "__id__": 8
     },
     "projectilePrefab": {
-      "__uuid__": "699993e8-8b8d-4080-98f7-a3549d438107",
+      "__uuid__": "6a49bb90-515b-4b4c-9a37-c1e299baf7b8",
       "__expectedType__": "cc.Prefab"
     },
     "firePoint": {
       "__id__": 2
     },
-    "detectionRange": 250,
+    "detectionRange": 400,
     "attackCooldown": 1,
     "ultimateExplosionPrefab": null,
     "ultimateAoeRadius": 150,
@@ -260,7 +260,7 @@
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "55kvm2U4BNpZRPkpmV5ff+"
+    "fileId": "59ibt/ZbBPhYxwP5AFDHHW"
   },
   {
     "__type__": "cc.PrefabInfo",
@@ -270,8 +270,7 @@
     "asset": {
       "__id__": 0
     },
-    "fileId": "f8SvvbysdMTYwifAnBjFYW",
-    "instance": null,
+    "fileId": "2dxCIlIglNLYulBw2/Z+nU",
     "targetOverrides": null
   }
 ]

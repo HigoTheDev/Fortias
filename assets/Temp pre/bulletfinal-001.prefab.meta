@@ -2,12 +2,12 @@
   "ver": "1.1.50",
   "importer": "prefab",
   "imported": true,
-  "uuid": "fb7c9023-a768-4f81-aaf8-50ed551d8d1b",
+  "uuid": "89a8e838-03a6-43b7-b20b-ff8e8030b6c0",
   "files": [
     ".json"
   ],
   "subMetas": {},
   "userData": {
-    "syncNodeName": "bullet container"
+    "syncNodeName": "bulletfinal-001"
   }
 }

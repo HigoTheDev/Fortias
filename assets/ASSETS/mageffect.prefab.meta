@@ -2,12 +2,12 @@
   "ver": "1.1.50",
   "importer": "prefab",
   "imported": true,
-  "uuid": "fb7c9023-a768-4f81-aaf8-50ed551d8d1b",
+  "uuid": "9229d7c5-e6de-4405-9e9c-bce29af279e5",
   "files": [
     ".json"
   ],
   "subMetas": {},
   "userData": {
-    "syncNodeName": "bullet container"
+    "syncNodeName": "mageffect"
   }
 }
