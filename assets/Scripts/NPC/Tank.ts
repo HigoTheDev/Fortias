@@ -182,6 +182,7 @@ export class Tank extends Component {
         }
         const effect = instantiate(this.ultimateExplosionPrefab);
         container.addChild(effect);
+        // effect.parent = container;
         effect.setWorldPosition(position);
         effect.setSiblingIndex(Number.MAX_SAFE_INTEGER);
     }

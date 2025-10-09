@@ -1052,7 +1052,7 @@
     "spine": {
       "__id__": 42
     },
-    "moveSpeed": 100,
+    "moveSpeed": 200,
     "requestDialog": {
       "__id__": 2
     },
