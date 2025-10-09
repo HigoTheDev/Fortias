@@ -1,13 +1,13 @@
-{
+﻿{
   "ver": "1.1.50",
   "importer": "prefab",
   "imported": true,
-  "uuid": "b6ea3415-267e-449f-8e06-5e43303cdc4b",
+  "uuid": "1c5f800a-dd47-46ed-801d-1eb27812464d",
   "files": [
     ".json"
   ],
   "subMetas": {},
   "userData": {
-    "syncNodeName": "arceffect"
+    "syncNodeName": "prefect"
   }
 }

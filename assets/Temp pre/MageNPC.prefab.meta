@@ -1,13 +1,13 @@
-{
+﻿{
   "ver": "1.1.50",
   "importer": "prefab",
   "imported": true,
-  "uuid": "b6ea3415-267e-449f-8e06-5e43303cdc4b",
+  "uuid": "e5de9a01-861c-46ed-95e0-c30689a1caf7",
   "files": [
     ".json"
   ],
   "subMetas": {},
   "userData": {
-    "syncNodeName": "arceffect"
+    "syncNodeName": "MageNPC"
   }
 }
