@@ -83,7 +83,7 @@ export class DoorController extends Component {
 
     public takeDamage(damage: number) {
         if (this.isDestroyed) return;
-
+        console.log(`DoorController: takeDamage được gọi với sát thương là ${damage}`);
         this.currentHP -= damage;
 
         if (this.hpBar && this.currentHP < this.maxHP) {
@@ -100,7 +100,7 @@ export class DoorController extends Component {
 
     private flashWhite() {
         if (!this.leftDoorSprite || !this.rightDoorSprite) return;
-
+        console.log("DoorController: flashWhite được gọi!");
         // Sử dụng sprite frame nếu có, ngược lại sử dụng color tween
         if (this.whiteSprite && this.normalSprite) {
             this.leftDoorSprite.spriteFrame = this.whiteSprite;
