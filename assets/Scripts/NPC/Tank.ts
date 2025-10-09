@@ -13,7 +13,6 @@ enum TankState {
 
 @ccclass("Tank")
 export class Tank extends Component {
-    // --- CÁC THUỘC TÍNH CƠ BẢN ---
     @property(sp.Skeleton)
     spine: sp.Skeleton = null!;
 
@@ -23,10 +22,7 @@ export class Tank extends Component {
     @property(Node)
     firePoint: Node = null!;
 
-    @property({
-        type: Node,
-        tooltip: "Node cha để chứa đạn và hiệu ứng. Thường là một Node con của Canvas."
-    })
+    @property(Node)
     public objectContainer: Node = null;
 
     @property
@@ -35,7 +31,6 @@ export class Tank extends Component {
     @property
     attackCooldown: number = 1.0;
 
-    // --- CÁC THUỘC TÍNH CHIÊU CUỐI ---
     @property({ type: Prefab, tooltip: "Prefab hiệu ứng nổ của chiêu cuối" })
     ultimateExplosionPrefab: Prefab = null!;
 
@@ -48,7 +43,6 @@ export class Tank extends Component {
     @property({ type: Number, tooltip: "Số lượng quái tối thiểu để kích hoạt ulti" })
     minGoblinsForUlti: number = 2;
 
-    // ✅ BỔ SUNG: Thuộc tính mới để điều chỉnh độ trễ của hiệu ứng ultimate
     @property({
         type: Number,
         tooltip: "Độ trễ (giây) từ lúc bắt đầu animation ulti đến khi hiệu ứng nổ xuất hiện."
@@ -70,8 +64,6 @@ export class Tank extends Component {
 
         this.spine.setCompleteListener((trackEntry) => {
             const animationName = trackEntry.animation.name;
-
-            // ✅ THAY ĐỔI: Listener giờ chỉ còn nhiệm vụ reset trạng thái
             if (animationName === 'skill_1') {
                 this.projectileCount = 0;
                 this.currentState = TankState.IDLE;
@@ -145,12 +137,9 @@ export class Tank extends Component {
             this.ultimateImpactPosition = this.node.worldPosition.clone();
         }
         this.spine.setAnimation(0, "skill_1", false);
-
-        // ✅ THAY ĐỔI: Hẹn giờ để kích hoạt hiệu ứng và sát thương sớm hơn
         this.scheduleOnce(this.triggerUltimateDamageAndEffect, this.ultimateEffectDelay);
     }
 
-    // ✅ BỔ SUNG: Hàm mới để xử lý sát thương và hiệu ứng
     private triggerUltimateDamageAndEffect() {
         console.log(`Triggering AOE damage and effect after ${this.ultimateEffectDelay}s`);
         const allEnemyNodes = EnemyManager.instance.getActiveEnemies();
@@ -179,13 +168,8 @@ export class Tank extends Component {
         this.objectContainer.addChild(projectile);
 
         const startPos = this.firePoint ? this.firePoint.worldPosition : this.node.worldPosition;
-
-        // ✅ BỔ SUNG: Tính toán lại hướng bắn của Tank so với mục tiêu
         const isRight = target.node.worldPosition.x >= this.node.worldPosition.x;
-
         const projComp = projectile.getComponent(TankProjectile);
-
-        // ✅ SỬA LỖI: Truyền thêm tham số 'isRight' vào hàm shoot
         projComp?.shoot(startPos, target, isRight);
 
         this.projectileCount++;

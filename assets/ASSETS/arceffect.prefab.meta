@@ -2,12 +2,12 @@
   "ver": "1.1.50",
   "importer": "prefab",
   "imported": true,
-  "uuid": "699993e8-8b8d-4080-98f7-a3549d438107",
+  "uuid": "e8b2f87d-54af-459d-a2a2-cb5a692d22a2",
   "files": [
     ".json"
   ],
   "subMetas": {},
   "userData": {
-    "syncNodeName": "prearcbullet"
+    "syncNodeName": "arceffect"
   }
 }

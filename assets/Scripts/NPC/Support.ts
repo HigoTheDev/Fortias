@@ -43,10 +43,6 @@ export class Support extends Component {
     @property({ type: Number, tooltip: "Số lượng mục tiêu tối đa của ulti" })
     maxUltiTargets: number = 5;
 
-    @property({
-        type: Node,
-        tooltip: "Node cha để chứa các viên đạn được bắn ra. Thường là một Node con của Canvas."
-    })
     public bulletContainer: Node = null;
 
     private currentState: SupportState = SupportState.IDLE;
@@ -60,6 +56,8 @@ export class Support extends Component {
     private readonly ULTIMATE_TIMEOUT: number = 5.0;
 
     start() {
+        this.bulletContainer = new Node('NPC_Bullet_Container');
+        this.node.parent.addChild(this.bulletContainer);
         if (!this.spine) {
             this.spine = this.getComponentInChildren(sp.Skeleton)!;
         }
