@@ -1,7 +1,8 @@
-﻿import { _decorator, Component, Node, sp, Prefab, instantiate, Vec3 } from "cc";
+﻿import { _decorator, Component, Node, sp, Prefab, instantiate, Vec3, Vec2, Rect} from "cc";
 import { GoblinController} from "db://assets/Scripts/Enemies/GoblinController";
 import { EnemyManager} from "db://assets/Scripts/Enemies/EnemyManager";
-import { SupportProjectile } from "db://assets/Scripts/NPC/SupportProjectile";
+import {SupportProjectile} from "db://assets/Scripts/NPC/SupportProjectile";
+
 
 const { ccclass, property } = _decorator;
 
@@ -13,6 +14,7 @@ enum HeroState {
 
 @ccclass("MageHeroController")
 export class MageHeroController extends Component {
+    // --- CÁC THUỘC TÍNH CƠ BẢN ---
     @property(sp.Skeleton)
     spine: sp.Skeleton = null!;
 
@@ -34,12 +36,20 @@ export class MageHeroController extends Component {
     @property({ tooltip: "Thời gian nghỉ giữa các đòn đánh thường" })
     attackCooldown: number = 1.0;
 
+    // --- THUỘC TÍNH CHO ULTIMATE ---
     @property({ type: Number, tooltip: "Số đòn đánh thường trước khi dùng Ultimate" })
     shotsForUltimate: number = 5;
 
     @property({ type: Number, tooltip: "Số lượng Goblin tối thiểu để kích hoạt Ultimate" })
     minGoblinsForUltimate: number = 2;
 
+    @property({ type: Number, tooltip: "Chiều rộng (độ dài) của vùng beam" })
+    ultimateBeamWidth: number = 800;
+
+    @property({ type: Number, tooltip: "Chiều cao của vùng beam" })
+    ultimateBeamHeight: number = 200;
+
+    // --- CÁC BIẾN TRẠNG THÁI ---
     private currentState: HeroState = HeroState.IDLE;
     private targetGoblin: GoblinController | null = null;
     private lastAttackTime: number = 0;
@@ -55,13 +65,11 @@ export class MageHeroController extends Component {
         this.spine.setCompleteListener((trackEntry) => {
             const animName = trackEntry.animation.name;
 
-            // Khi animation Ultimate kết thúc, quay về trạng thái IDLE
-            if (animName === 'skill_1_270') { // GIỮ LẠI TÊN ANIMATION ULTI CỦA BẠN
-                this.attackCount = 0; // Reset bộ đếm
+            if (animName === 'skill_1_270') {
+                this.attackCount = 0;
                 this.currentState = HeroState.IDLE;
                 this.spine.setAnimation(0, "idle", true);
             }
-            // Khi animation đánh thường kết thúc, quay về IDLE (nếu không đang trong trạng thái Ultimate)
             else if (animName === 'attack_range_1') {
                 if (this.currentState !== HeroState.ULTIMATE) {
                     this.spine.setAnimation(0, "idle", true);
@@ -71,7 +79,6 @@ export class MageHeroController extends Component {
     }
 
     update(dt: number) {
-        // Chuyển đổi trạng thái dựa trên State Machine
         switch (this.currentState) {
             case HeroState.IDLE:
                 this.findTarget();
@@ -80,7 +87,6 @@ export class MageHeroController extends Component {
                 this.attackLoop();
                 break;
             case HeroState.ULTIMATE:
-                // Ở trạng thái Ultimate, hero sẽ không làm gì cho đến khi animation kết thúc
                 break;
         }
     }
@@ -88,34 +94,30 @@ export class MageHeroController extends Component {
     private findTarget() {
         const goblins = this.getAllGoblinsInRange();
         if (goblins.length > 0) {
-            // Sắp xếp để tìm ra goblin gần nhất
             goblins.sort((a, b) =>
                 Vec3.squaredDistance(this.node.worldPosition, a.node.worldPosition) -
                 Vec3.squaredDistance(this.node.worldPosition, b.node.worldPosition)
             );
             this.targetGoblin = goblins[0];
-            this.currentState = HeroState.ATTACK; // Chuyển sang trạng thái tấn công
+            this.currentState = HeroState.ATTACK;
         }
     }
 
     private attackLoop() {
-        // Nếu mục tiêu đã chết hoặc không hợp lệ, quay về tìm mục tiêu mới
         if (!this.targetGoblin || !this.targetGoblin.isValid || this.targetGoblin.isDead) {
             this.currentState = HeroState.IDLE;
             this.targetGoblin = null;
             return;
         }
 
-        // Kiểm tra điều kiện để dùng Ultimate
         if (this.attackCount >= this.shotsForUltimate) {
             const nearbyGoblins = this.getAllGoblinsInRange();
             if (nearbyGoblins.length >= this.minGoblinsForUltimate) {
-                this.castUltimate(); // Đủ điều kiện, tung chiêu cuối
+                this.castUltimate();
                 return;
             }
         }
 
-        // Tấn công thường theo cooldown
         const now = performance.now() / 1000;
         if (now - this.lastAttackTime >= this.attackCooldown) {
             this.shootProjectile(this.targetGoblin);
@@ -123,19 +125,11 @@ export class MageHeroController extends Component {
         }
     }
 
-    /**
-     * TUNG CHIÊU CUỐI AOE
-     * Giữ lại cơ chế spawn prefab AOE của bạn
-     */
     private castUltimate() {
-        this.currentState = HeroState.ULTIMATE; // Chuyển sang trạng thái Ultimate
-        this.spine.setAnimation(0, "skill_1_270", false); // GIỮ LẠI TÊN ANIMATION ULTI CỦA BẠN
-
-        // Lấy thời gian của animation
-        const animDuration = this.spine.findAnimation("skill_1_270")?.duration ?? 1.0;
-
-        // Hẹn giờ để spawn hiệu ứng AOE ở giữa animation
-        this.scheduleOnce(() => this.spawnAOE(), animDuration * 0.5);
+        this.currentState = HeroState.ULTIMATE;
+        this.spine.setAnimation(0, "skill_1_270", false);
+        this.spawnAOE();
+        this.scheduleOnce(() => this.dealBeamDamage(), 1.0);
     }
 
     private spawnAOE() {
@@ -145,10 +139,36 @@ export class MageHeroController extends Component {
         aoeEffect.setWorldPosition(this.aoeSpawnPoint.worldPosition);
     }
 
+    private dealBeamDamage() {
+        if (!EnemyManager.instance) return;
+
+        // 1. Xác định tâm của vùng beam
+        const beamCenter = this.aoeSpawnPoint ? this.aoeSpawnPoint.worldPosition : this.node.worldPosition;
+
+        // 2. Tạo một hình chữ nhật (Rect) đại diện cho vùng beam
+        const beamRect = new Rect(
+            beamCenter.x - this.ultimateBeamWidth,      // Tọa độ x bên trái
+            beamCenter.y - this.ultimateBeamHeight / 2, // Tọa độ y phía dưới
+            this.ultimateBeamWidth,                     // Chiều rộng
+            this.ultimateBeamHeight
+        );
+
+        const allEnemies = EnemyManager.instance.getActiveEnemies();
+        for (const enemyNode of allEnemies) {
+            const goblinScript = enemyNode.getComponent(GoblinController);
+            if (goblinScript && !goblinScript.isDead) {
+                const goblinPosition2D = new Vec2(enemyNode.worldPosition.x, enemyNode.worldPosition.y);
+                if (beamRect.contains(goblinPosition2D)) {
+                    goblinScript.die();
+                }
+            }
+        }
+    }
+
     private shootProjectile(target: GoblinController) {
         if (!this.projectilePrefab || !this.bulletContainer) return;
 
-        this.spine.setAnimation(0, "attack_range_1", false); // GIỮ LẠI TÊN ANIMATION ĐÁNH THƯỜNG
+        this.spine.setAnimation(0, "attack_range_1", false);
 
         const projectileNode = instantiate(this.projectilePrefab);
         this.bulletContainer.addChild(projectileNode);
@@ -159,7 +179,7 @@ export class MageHeroController extends Component {
         const projectileScript = projectileNode.getComponent(SupportProjectile);
         projectileScript?.shoot(startPos, target, isRight);
 
-        this.attackCount++; // Tăng bộ đếm
+        this.attackCount++;
     }
 
     private getAllGoblinsInRange(): GoblinController[] {

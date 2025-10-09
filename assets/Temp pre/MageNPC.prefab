@@ -25,7 +25,7 @@
         "__id__": 6
       }
     ],
-    "_active": false,
+    "_active": true,
     "_components": [
       {
         "__id__": 10
@@ -42,8 +42,8 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -118.107,
-      "y": -254.352,
+      "x": 0,
+      "y": 0,
       "z": 0
     },
     "_lrot": {
@@ -319,7 +319,7 @@
     "fileId": "cbYb724l5FEpYSaPyGlWv2"
   },
   {
-    "__type__": "6dbcahKJA5HDKQnTV6jRAQ7",
+    "__type__": "bbdeeDwCqdKppuf8aS3bqtg",
     "_name": "",
     "_objFlags": 0,
     "__editorExtras__": {},
@@ -334,7 +334,7 @@
       "__id__": 12
     },
     "projectilePrefab": {
-      "__uuid__": "89a8e838-03a6-43b7-b20b-ff8e8030b6c0",
+      "__uuid__": "6c7cce0a-bc20-4b35-8821-3e97840400db",
       "__expectedType__": "cc.Prefab"
     },
     "aoePrefab": {
@@ -351,11 +351,13 @@
     "attackCooldown": 1,
     "shotsForUltimate": 5,
     "minGoblinsForUltimate": 2,
+    "ultimateBeamWidth": 800,
+    "ultimateBeamHeight": 100,
     "_id": ""
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "8aJewMtvNAOoXappEPKrmu"
+    "fileId": "53dHE89+JIIrlxGmOWVL7F"
   },
   {
     "__type__": "cc.PrefabInfo",

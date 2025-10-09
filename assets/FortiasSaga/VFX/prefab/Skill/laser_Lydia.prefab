@@ -170,8 +170,8 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -203.629,
-      "y": 0,
+      "x": -293.799,
+      "y": 8.712,
       "z": 0
     },
     "_lrot": {
@@ -183,8 +183,8 @@
     },
     "_lscale": {
       "__type__": "cc.Vec3",
-      "x": 80,
-      "y": 80,
+      "x": 120,
+      "y": 120,
       "z": 80
     },
     "_mobility": 0,
@@ -1144,6 +1144,8 @@
       "__id__": 0
     },
     "fileId": "adlfsAvaVCu5BmesuzcU0v",
+    "instance": null,
+    "targetOverrides": null,
     "nestedPrefabInstanceRoots": null
   },
   {
@@ -1185,8 +1187,8 @@
     },
     "_lscale": {
       "__type__": "cc.Vec3",
-      "x": 80,
-      "y": 80,
+      "x": 120,
+      "y": 120,
       "z": 80
     },
     "_mobility": 0,
@@ -2175,8 +2177,8 @@
     },
     "_lscale": {
       "__type__": "cc.Vec3",
-      "x": 80,
-      "y": 80,
+      "x": 120,
+      "y": 120,
       "z": 80
     },
     "_mobility": 0,
@@ -3233,8 +3235,8 @@
     },
     "_lscale": {
       "__type__": "cc.Vec3",
-      "x": 80,
-      "y": 80,
+      "x": 120,
+      "y": 120,
       "z": 80
     },
     "_mobility": 0,
@@ -4161,6 +4163,8 @@
       "__id__": 0
     },
     "fileId": "cfWKGAEt1A9L58lFuJEC5p",
+    "instance": null,
+    "targetOverrides": null,
     "nestedPrefabInstanceRoots": null
   },
   {
@@ -4189,8 +4193,8 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -200.187,
-      "y": 0,
+      "x": -1023.516,
+      "y": -11.118,
       "z": 0
     },
     "_lrot": {
@@ -4202,8 +4206,8 @@
     },
     "_lscale": {
       "__type__": "cc.Vec3",
-      "x": 40,
-      "y": 40,
+      "x": 80,
+      "y": 80,
       "z": 40
     },
     "_mobility": 0,
@@ -5158,8 +5162,8 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -217.389,
-      "y": -4.324,
+      "x": -178.74,
+      "y": -5.523,
       "z": 0
     },
     "_lrot": {
@@ -5171,8 +5175,8 @@
     },
     "_lscale": {
       "__type__": "cc.Vec3",
-      "x": 40,
-      "y": 40,
+      "x": 80,
+      "y": 80,
       "z": 40
     },
     "_mobility": 0,
@@ -6138,8 +6142,8 @@
     },
     "_lscale": {
       "__type__": "cc.Vec3",
-      "x": 20,
-      "y": 20,
+      "x": 40,
+      "y": 40,
       "z": 20
     },
     "_mobility": 0,
@@ -6971,8 +6975,8 @@
     },
     "_lscale": {
       "__type__": "cc.Vec3",
-      "x": 20,
-      "y": 20,
+      "x": 40,
+      "y": 40,
       "z": 20
     },
     "_mobility": 0,
@@ -9169,6 +9173,7 @@
       "__id__": 0
     },
     "fileId": "efQQUB7IpKKa91Jzc9xAhY",
+    "instance": null,
     "targetOverrides": []
   }
 ]

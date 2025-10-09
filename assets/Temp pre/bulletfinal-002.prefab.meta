@@ -1,13 +1,13 @@
-{
+﻿{
   "ver": "1.1.50",
   "importer": "prefab",
   "imported": true,
-  "uuid": "f2fcc947-40ac-4b8c-9151-9f8e002f4e4d",
+  "uuid": "f7ba8df1-9d95-4a32-9e56-4d7ddbc942ea",
   "files": [
     ".json"
   ],
   "subMetas": {},
   "userData": {
-    "syncNodeName": "lydia_bullet"
+    "syncNodeName": "bulletfinal-002"
   }
 }

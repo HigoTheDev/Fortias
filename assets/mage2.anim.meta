@@ -2,12 +2,12 @@
   "ver": "2.0.4",
   "importer": "animation-clip",
   "imported": true,
-  "uuid": "b442d49d-c734-40f8-928c-d1fbe0a8dc09",
+  "uuid": "cf68be80-0d51-460f-9b97-fa82ecdd345e",
   "files": [
     ".bin"
   ],
   "subMetas": {},
   "userData": {
-    "name": "prefect"
+    "name": "mage2"
   }
 }
