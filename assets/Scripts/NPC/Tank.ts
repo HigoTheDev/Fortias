@@ -2,6 +2,7 @@ import { _decorator, Component, Node, sp, Prefab, instantiate, Vec3 } from "cc";
 import { GoblinController } from "db://assets/Scripts/Enemies/GoblinController";
 import { TankProjectile } from "./TankProjectile";
 import { EnemyManager } from "db://assets/Scripts/Enemies/EnemyManager";
+import { GameManager } from "db://assets/Scripts/GameManager"; // ✅ BỔ SUNG 1
 
 const { ccclass, property } = _decorator;
 
@@ -22,8 +23,6 @@ export class Tank extends Component {
     @property(Node)
     firePoint: Node = null!;
 
-    @property(Node)
-    public objectContainer: Node = null;
 
     @property
     detectionRange: number = 400;
@@ -49,7 +48,6 @@ export class Tank extends Component {
     })
     public ultimateEffectDelay: number = 0.5;
 
-    // --- CÁC BIẾN TRẠNG THÁI ---
     private currentState: TankState = TankState.IDLE;
     private targetGoblin: GoblinController | null = null;
     private lastAttackTime: number = 0;
@@ -155,17 +153,17 @@ export class Tank extends Component {
         this.spawnUltimateExplosion(this.ultimateImpactPosition);
     }
 
-
     private shootProjectile(target: GoblinController) {
         if (!this.projectilePrefab) return;
-        if (!this.objectContainer) {
-            console.error(`Object Container chưa được gán cho Tank: ${this.node.name}`);
+        const container = GameManager.instance.objectContainer;
+        if (!container) {
+            console.error(`Object Container chưa được gán trong GameManager! Tank: ${this.node.name}`);
             return;
         }
-        this.spine.setAnimation(0, "attack_range_1", false);
 
+        this.spine.setAnimation(0, "attack_range_1", false);
         const projectile = instantiate(this.projectilePrefab);
-        this.objectContainer.addChild(projectile);
+        container.addChild(projectile);
 
         const startPos = this.firePoint ? this.firePoint.worldPosition : this.node.worldPosition;
         const isRight = target.node.worldPosition.x >= this.node.worldPosition.x;
@@ -177,12 +175,13 @@ export class Tank extends Component {
 
     private spawnUltimateExplosion(position: Vec3) {
         if (!this.ultimateExplosionPrefab) return;
-        if (!this.objectContainer) {
-            console.error(`Object Container chưa được gán cho Tank: ${this.node.name}`);
+        const container = GameManager.instance.objectContainer;
+        if (!container) {
+            console.error(`Object Container chưa được gán trong GameManager! Tank: ${this.node.name}`);
             return;
         }
         const effect = instantiate(this.ultimateExplosionPrefab);
-        this.objectContainer.addChild(effect);
+        container.addChild(effect);
         effect.setWorldPosition(position);
         effect.setSiblingIndex(Number.MAX_SAFE_INTEGER);
     }

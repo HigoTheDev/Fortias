@@ -1,7 +1,8 @@
 ﻿import { _decorator, Component, Node, sp, Prefab, instantiate, Vec3 } from "cc";
 import { GoblinController } from "db://assets/Scripts/Enemies/GoblinController";
-import { PreArcProjectile} from "db://assets/Scripts/NPC/PreArcProjectile";
+import { PreArcProjectile } from "db://assets/Scripts/NPC/PreArcProjectile";
 import { EnemyManager } from "db://assets/Scripts/Enemies/EnemyManager";
+import { GameManager } from "db://assets/Scripts/GameManager"; //
 
 const { ccclass, property } = _decorator;
 
@@ -21,8 +22,6 @@ export class PreArc extends Component {
 
     @property(Node)
     firePoint: Node = null!;
-
-    public objectContainer: Node = null;
 
     @property
     detectionRange: number = 400;
@@ -55,8 +54,7 @@ export class PreArc extends Component {
     private ultimateImpactPosition: Vec3 = null;
 
     start() {
-        this.objectContainer = new Node('NPC_bullet-container');
-        this.node.parent.addChild(this.objectContainer);
+
         if (!this.spine) {
             this.spine = this.getComponentInChildren(sp.Skeleton)!;
         }
@@ -157,16 +155,19 @@ export class PreArc extends Component {
         this.spawnUltimateExplosion(this.ultimateImpactPosition);
     }
 
-
     private shootProjectile(target: GoblinController) {
         if (!this.projectilePrefab) return;
-        if (!this.objectContainer) {
-            console.error(`Object Container chưa được gán cho Tank: ${this.node.name}`);
+
+        const container = GameManager.instance.objectContainer;
+        if (!container) {
+            console.error(`Object Container chưa được gán trong GameManager! PreArc: ${this.node.name}`);
             return;
         }
+
         this.spine.setAnimation(0, "attack_range_1", false);
         const projectile = instantiate(this.projectilePrefab);
-        this.objectContainer.addChild(projectile);
+        container.addChild(projectile);
+
         const startPos = this.firePoint ? this.firePoint.worldPosition : this.node.worldPosition;
         const isRight = target.node.worldPosition.x >= this.node.worldPosition.x;
         const projComp = projectile.getComponent(PreArcProjectile);
@@ -177,12 +178,15 @@ export class PreArc extends Component {
 
     private spawnUltimateExplosion(position: Vec3) {
         if (!this.ultimateExplosionPrefab) return;
-        if (!this.objectContainer) {
-            console.error(`Object Container chưa được gán cho Tank: ${this.node.name}`);
+
+        const container = GameManager.instance.objectContainer;
+        if (!container) {
+            console.error(`Object Container chưa được gán trong GameManager! PreArc: ${this.node.name}`);
             return;
         }
+
         const effect = instantiate(this.ultimateExplosionPrefab);
-        this.objectContainer.addChild(effect);
+        container.addChild(effect);
         effect.setWorldPosition(position);
         effect.setSiblingIndex(Number.MAX_SAFE_INTEGER);
     }

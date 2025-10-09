@@ -185,7 +185,7 @@ export class GoblinController extends Component {
         effect.setPosition(0, 0, 0);
         effect.setSiblingIndex(0);
     }
-
+    
     public die() {
         if (this.isDead) return;
         this.isDead = true;
@@ -198,6 +198,14 @@ export class GoblinController extends Component {
             this.node.parent?.addChild(rubyNode);
             rubyNode.setWorldPosition(this.node.worldPosition);
         }
+
+        this.spine.color = Color.RED;
+        this.scheduleOnce(() => {
+            if (this.spine && this.spine.isValid) {
+                this.spine.color = Color.WHITE;
+            }
+        }, 0.1);
+
 
         this.spine.setAnimation(0, "die", false);
         this.spine.setCompleteListener((trackEntry) => {

@@ -6,7 +6,6 @@ const { ccclass, property } = _decorator;
 
 @ccclass('GameManager')
 export class GameManager extends Component {
-    // --- Singleton Pattern ---
     private static _instance: GameManager = null;
     public static get instance(): GameManager {
         if (this._instance === null) {
@@ -18,14 +17,18 @@ export class GameManager extends Component {
     @property(UIManager)
     uiManager: UIManager = null!;
 
+    @property({
+        type: Node,
+        tooltip: "Node cha để chứa các đối tượng được sinh ra bởi NPC (đạn, hiệu ứng...)"
+    })
+    public objectContainer: Node = null;
+
     private _currentRubies: number = 0;
     private _currentCoins: number = 0;
 
     protected onLoad(): void {
         if (GameManager._instance === null) {
             GameManager._instance = this;
-            // (Tùy chọn) Giữ cho GameManager tồn tại qua các scene
-            // director.addPersistRootNode(this.node);
         } else {
             this.destroy();
             return;
@@ -33,9 +36,11 @@ export class GameManager extends Component {
     }
 
     start() {
-        // Khởi tạo giá trị ban đầu và cập nhật UI
         this.updateRubyCount(0);
         this.updateCoinCount(0);
+        if (!this.objectContainer) {
+            console.error("Vui lòng gán Object Container cho GameManager trong Inspector!");
+        }
     }
 
     public addRubies(amount: number): void {
@@ -51,7 +56,7 @@ export class GameManager extends Component {
     }
 
     private updateRubyCount(newValue: number): void {
-        this._currentRubies = Math.max(0, newValue); // Đảm bảo không bị âm
+        this._currentRubies = Math.max(0, newValue);
         if (this.uiManager) {
             this.uiManager.updateRubyLabel(this._currentRubies);
         }
