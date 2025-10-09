@@ -1,11 +1,9 @@
-﻿{
+{
   "ver": "2.0.4",
   "importer": "animation-clip",
   "imported": false,
-  "uuid": "3f15f9f9-548a-4dfb-90b5-1a54f7102f86",
+  "uuid": "8cad7d98-a5a0-432a-82b6-3311a670acf0",
   "files": [],
   "subMetas": {},
-  "userData": {
-    "name": "animation"
-  }
+  "userData": {}
 }

@@ -39,8 +39,8 @@ export class PlayerSpine extends Component {
     @property({ group: 'Ruby Collection', tooltip: "Khoảng cách dọc giữa các viên Ruby." })
     rubyStackOffset: number = 8;
 
-    @property({ group: 'Ruby Collection', tooltip: "Vị trí của chồng Ruby so với Player (x, y)." })
-    rubyStackPosition: Vec2 = new Vec2(-20, 60);
+    @property({ type: Node, group: 'Ruby Collection', tooltip: "Node con làm điểm neo cho chồng Ruby." })
+    rubyStackNode: Node = null!;
 
     @property({ group: 'Coin Collection', tooltip: "Tốc độ Coin bay theo Player." })
     coinAttractSpeed: number = 15;
@@ -48,14 +48,28 @@ export class PlayerSpine extends Component {
     @property({ group: 'Coin Collection', tooltip: "Khoảng cách dọc giữa các đồng xu." })
     coinStackOffset: number = 8;
 
-    @property({ group: 'Coin Collection', tooltip: "Vị trí của chồng Coin so với Player (x, y)." })
-    coinStackPosition: Vec2 = new Vec2(-20, 0);
+    @property({ type: Node, group: 'Coin Collection', tooltip: "Node con làm điểm neo cho chồng Coin." })
+    coinStackNode: Node = null!;
 
     @property({ group: 'Coin Collection', tooltip: "Tốc độ tiêu Coin khi đứng ở cổng (giây/coin)." })
     coinDropOffInterval: number = 0.1;
 
+    @property({
+        type: Node,
+        group: 'Collection Management',
+        tooltip: "Node cha để chứa tất cả Ruby đã thu thập."
+    })
+    rubyContainer: Node = null!;
+
+    @property({
+        type: Node,
+        group: 'Collection Management',
+        tooltip: "Node cha để chứa tất cả Coin đã thu thập. Node này phải ở dưới RubyContainer trong Hierarchy."
+    })
+    coinContainer: Node = null!;
+
     // --- Private Variables ---
-    public collectedCoins: Node[] = []; // Chuyển sang public để Gate truy cập
+    public collectedCoins: Node[] = [];
     private collectedRubies: Node[] = [];
     private flyingRubies: Node[] = [];
     private flyingCoins: Node[] = [];
@@ -106,7 +120,6 @@ export class PlayerSpine extends Component {
         this.updateRubyStack();
         this.updateCoinStack();
 
-        // --- Logic di chuyển và tấn công giữ nguyên ---
         if (this.state !== PlayerState.Attack) {
             const enemy = this.getClosestEnemy();
             if (enemy) {
@@ -141,7 +154,6 @@ export class PlayerSpine extends Component {
         else if (this.moveDir.x < 0) this.node.setScale(-this.originalScaleX, this.node.getScale().y, 1);
     }
 
-    // ✅ HÀM MỚI: Để CoinGateController kiểm tra số coin thực tế trên người Player
     public getCollectedCoinCount(): number {
         return this.collectedCoins.length;
     }
@@ -163,7 +175,7 @@ export class PlayerSpine extends Component {
 
     private updateFlyingItems(deltaTime: number) {
         if (this.flyingRubies.length > 0) {
-            const rubyBasePos = new Vec3(this.node.worldPosition.x + this.rubyStackPosition.x, this.node.worldPosition.y + this.rubyStackPosition.y, this.node.worldPosition.z);
+            const rubyBasePos = this.rubyStackNode.getWorldPosition();
             const rubyTargetPos = new Vec3(rubyBasePos.x, rubyBasePos.y + (this.collectedRubies.length * this.rubyStackOffset), rubyBasePos.z);
 
             for (let i = this.flyingRubies.length - 1; i >= 0; i--) {
@@ -180,7 +192,7 @@ export class PlayerSpine extends Component {
             }
         }
         if (this.flyingCoins.length > 0) {
-            const coinBasePos = new Vec3(this.node.worldPosition.x + this.coinStackPosition.x, this.node.worldPosition.y + this.coinStackPosition.y, this.node.worldPosition.z);
+            const coinBasePos = this.coinStackNode.getWorldPosition();
             const coinTargetPos = new Vec3(coinBasePos.x, coinBasePos.y + (this.collectedCoins.length * this.coinStackOffset), coinBasePos.z);
 
             for (let i = this.flyingCoins.length - 1; i >= 0; i--) {
@@ -199,6 +211,12 @@ export class PlayerSpine extends Component {
     }
     public receiveCoin(coinNode: Node) {
         GameManager.instance.addCoins(1);
+
+        // Đặt coin vào container để quản lý thứ tự render
+        if (this.coinContainer) {
+            coinNode.setParent(this.coinContainer);
+        }
+
         this.flyingCoins.push(coinNode);
     }
     private checkForNearbyRubies() {
@@ -211,6 +229,12 @@ export class PlayerSpine extends Component {
             const distance = Vec2.distance(playerPos, rubyPos);
             if (distance <= this.collectionRadius) {
                 ruby.isCollected = true;
+
+                // Đặt ruby vào container để quản lý thứ tự render
+                if (this.rubyContainer) {
+                    ruby.node.setParent(this.rubyContainer);
+                }
+
                 GameManager.instance.addRubies(1);
                 const rubyBody = ruby.getComponent(RigidBody2D);
                 if (rubyBody) rubyBody.enabled = false;
@@ -220,7 +244,7 @@ export class PlayerSpine extends Component {
     }
     private updateCoinStack() {
         if (this.collectedCoins.length === 0) return;
-        const basePosition = new Vec3(this.node.worldPosition.x + this.coinStackPosition.x, this.node.worldPosition.y + this.coinStackPosition.y, this.node.worldPosition.z);
+        const basePosition = this.coinStackNode.getWorldPosition();
         for (let i = 0; i < this.collectedCoins.length; i++) {
             const coinNode = this.collectedCoins[i];
             const targetPosition = new Vec3(basePosition.x, basePosition.y + (i * this.coinStackOffset), basePosition.z);
@@ -229,7 +253,7 @@ export class PlayerSpine extends Component {
     }
     private updateRubyStack() {
         if (this.collectedRubies.length === 0 || this.activeDropZone) { return; }
-        const basePosition = new Vec3(this.node.worldPosition.x + this.rubyStackPosition.x, this.node.worldPosition.y + this.rubyStackPosition.y, this.node.worldPosition.z);
+        const basePosition = this.rubyStackNode.getWorldPosition();
         for (let i = 0; i < this.collectedRubies.length; i++) {
             const rubyNode = this.collectedRubies[i];
             const targetPosition = new Vec3(basePosition.x, basePosition.y + (i * this.rubyStackOffset), basePosition.z);
@@ -324,10 +348,22 @@ export class PlayerSpine extends Component {
     }
     private onKeyDown(event: EventKeyboard) {
         switch (event.keyCode) {
-            case KeyCode.KEY_W: this.moveDirKeyboard.y = 1; break;
-            case KeyCode.KEY_S: this.moveDirKeyboard.y = -1; break;
-            case KeyCode.KEY_A: this.moveDirKeyboard.x = -1; break;
-            case KeyCode.KEY_D: this.moveDirKeyboard.x = 1; break;
+            case KeyCode.KEY_W:
+            case KeyCode.ARROW_UP:
+                this.moveDirKeyboard.y = 1;
+                break;
+            case KeyCode.KEY_S:
+            case KeyCode.ARROW_DOWN:
+                this.moveDirKeyboard.y = -1;
+                break;
+            case KeyCode.KEY_A:
+            case KeyCode.ARROW_LEFT:
+                this.moveDirKeyboard.x = -1;
+                break;
+            case KeyCode.KEY_D:
+            case KeyCode.ARROW_RIGHT:
+                this.moveDirKeyboard.x = 1;
+                break;
             case KeyCode.SPACE: this.attack(this.getClosestEnemy()); break;
             case KeyCode.KEY_P: this.die(); break;
             case KeyCode.KEY_L: this.takeDamage(50); break;
@@ -335,10 +371,22 @@ export class PlayerSpine extends Component {
     }
     private onKeyUp(event: EventKeyboard) {
         switch (event.keyCode) {
-            case KeyCode.KEY_W: if (this.moveDirKeyboard.y > 0) this.moveDirKeyboard.y = 0; break;
-            case KeyCode.KEY_S: if (this.moveDirKeyboard.y < 0) this.moveDirKeyboard.y = 0; break;
-            case KeyCode.KEY_A: if (this.moveDirKeyboard.x < 0) this.moveDirKeyboard.x = 0; break;
-            case KeyCode.KEY_D: if (this.moveDirKeyboard.x > 0) this.moveDirKeyboard.x = 0; break;
+            case KeyCode.KEY_W:
+            case KeyCode.ARROW_UP:
+                if (this.moveDirKeyboard.y > 0) this.moveDirKeyboard.y = 0;
+                break;
+            case KeyCode.KEY_S:
+            case KeyCode.ARROW_DOWN:
+                if (this.moveDirKeyboard.y < 0) this.moveDirKeyboard.y = 0;
+                break;
+            case KeyCode.KEY_A:
+            case KeyCode.ARROW_LEFT:
+                if (this.moveDirKeyboard.x < 0) this.moveDirKeyboard.x = 0;
+                break;
+            case KeyCode.KEY_D:
+            case KeyCode.ARROW_RIGHT:
+                if (this.moveDirKeyboard.x > 0) this.moveDirKeyboard.x = 0;
+                break;
         }
     }
 }
