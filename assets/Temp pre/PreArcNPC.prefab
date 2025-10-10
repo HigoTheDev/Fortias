@@ -243,7 +243,7 @@
       "__id__": 8
     },
     "projectilePrefab": {
-      "__uuid__": "f7ba8df1-9d95-4a32-9e56-4d7ddbc942ea",
+      "__uuid__": "e11e08b6-2393-49dd-8b39-84a3b9b12288",
       "__expectedType__": "cc.Prefab"
     },
     "firePoint": {
@@ -255,7 +255,7 @@
       "__uuid__": "7b94d910-6420-45b2-9260-c7463605d578",
       "__expectedType__": "cc.Prefab"
     },
-    "ultimateAoeRadius": 150,
+    "ultimateAoeRadius": 75,
     "shotsForUlti": 5,
     "minGoblinsForUlti": 2,
     "ultimateEffectDelay": 0.5,

@@ -210,7 +210,7 @@ export class Support extends Component {
         const effect = instantiate(this.ultimateEffectPrefab);
         this.node.parent.addChild(effect);
         effect.setWorldPosition(position);
-        effect.setSiblingIndex(3);
+        effect.setSiblingIndex(0);
 
         console.log("Effect đã được tạo tại vị trí:", effect.worldPosition);
     }

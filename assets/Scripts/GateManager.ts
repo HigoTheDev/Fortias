@@ -23,12 +23,6 @@ export class GateManager extends Component {
     @property(Prefab) public gatePrefab: Prefab = null!;
     @property([Node]) public spawnPoints: Node[] = [];
     @property([CCInteger]) public gateCosts: number[] = [3, 50, 60];
-
-    // --- CÁC THUỘC TÍNH CHO CÁCH 1 (SPAWN TRƯỚC, KÍCH HOẠT SAU) ---
-    @property({ type: [TowerHeroSet], tooltip: "[CÁCH 1] Danh sách Trụ và các lựa chọn Hero tương ứng." })
-    public towerHeroSets: TowerHeroSet[] = [];
-
-    // --- CÁC THUỘC TÍNH CHO CÁCH 2 (SPAWN KHI ĐƯỢC CHỌN) ---
     @property({ type: [Prefab], tooltip: "[CÁCH 2] Danh sách các Prefab Trụ." })
     public towerPrefabs: Prefab[] = [];
 
@@ -131,25 +125,6 @@ export class GateManager extends Component {
         tween(tower).to(0.5, { scale: v3(1, 1, 1) }, { easing: 'backOut' }).start();
         this.lastSpawnedTower = tower;
 
-        /*
-        // CÁCH 1 (ĐANG VÔ HIỆU HÓA): Spawn cả trụ và các hero ẩn
-        if (pointIndex === -1 || pointIndex >= this.towerHeroSets.length) return;
-        const currentSet = this.towerHeroSets[pointIndex];
-        const tower = instantiate(currentSet.towerPrefab);
-        this.node.addChild(tower);
-        tower.setWorldPosition(point.worldPosition);
-        tower.scale = v3(0, 0, 0);
-        tween(tower).to(0.5, { scale: v3(1, 1, 1) }, { easing: 'backOut' }).start();
-        this.lastSpawnedTower = tower;
-        const heroContainer = new Node("heroContainer");
-        tower.addChild(heroContainer);
-        for (const heroPrefab of currentSet.heroPrefabs) {
-            const heroNode = instantiate(heroPrefab);
-            heroNode.name = heroPrefab.name;
-            heroNode.active = false;
-            heroContainer.addChild(heroNode);
-        }
-        */
     }
 
     private spawnNextGate() {
