@@ -1,13 +1,13 @@
-﻿{
+{
   "ver": "2.0.4",
   "importer": "animation-clip",
   "imported": true,
-  "uuid": "cf68be80-0d51-460f-9b97-fa82ecdd345e",
+  "uuid": "b8e3c38c-81cb-4d88-b280-2f41fb6ed0bc",
   "files": [
     ".bin"
   ],
   "subMetas": {},
   "userData": {
-    "name": "mage2"
+    "name": "final"
   }
 }

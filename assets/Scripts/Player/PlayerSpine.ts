@@ -1,4 +1,3 @@
-// File: PlayerSpine.ts
 import { _decorator, Component, sp, input, Input, EventKeyboard, KeyCode, Vec2, RigidBody2D, Node, Collider2D, Contact2DType, IPhysics2DContact, Vec3, tween, easing } from 'cc';
 import { VirtualJoystick } from "db://assets/Scripts/Player/VirtualJoystick";
 import { HPBar } from "db://assets/Scripts/Player/HPBar";
@@ -8,6 +7,7 @@ import { DropZoneController } from "db://assets/Scripts/DropZoneController";
 import { GameManager } from "db://assets/Scripts/GameManager";
 import { CoinGateController } from "db://assets/Scripts/CoinGateController";
 import { EnemyManager } from "db://assets/Scripts/Enemies/EnemyManager";
+import { RubyManager} from "db://assets/Scripts/Currency/RubyManager";
 
 const { ccclass, property } = _decorator;
 
@@ -237,13 +237,12 @@ export class PlayerSpine extends Component {
     }
 
     private checkForNearbyRubies() {
-        // NOTE: This function still uses getComponentsInChildren for Rubies.
-        // For better performance, consider creating a RubyManager similar to EnemyManager.
-        const allRubies = this.node.scene.getComponentsInChildren(RubyController);
+        const allRubies = [...RubyManager.instance.getActiveRubies()];
         if (allRubies.length === 0) return;
 
         const playerPos = this.node.worldPosition;
-        for (const ruby of allRubies) {
+        for (const rubyNode of allRubies) { // Duyệt qua Node
+            const ruby = rubyNode.getComponent(RubyController); // Lấy script component
             if (ruby.isCollected || !ruby.node.active) continue;
 
             const distance = Vec3.distance(playerPos, ruby.node.worldPosition);

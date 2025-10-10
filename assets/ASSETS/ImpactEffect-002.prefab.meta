@@ -1,13 +1,13 @@
-﻿{
+{
   "ver": "1.1.50",
   "importer": "prefab",
   "imported": true,
-  "uuid": "2d710fc0-c781-4a89-8b85-499a0ec21fa4",
+  "uuid": "1eeeba74-4443-4cd5-bfe2-bb2246a9a193",
   "files": [
     ".json"
   ],
   "subMetas": {},
   "userData": {
-    "syncNodeName": "prefect"
+    "syncNodeName": "ImpactEffect-002"
   }
 }

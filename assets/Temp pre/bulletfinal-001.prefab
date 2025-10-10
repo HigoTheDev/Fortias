@@ -3228,7 +3228,7 @@
     },
     "rotationSpeed": 360,
     "impactEffectPrefab": {
-      "__uuid__": "c77f8a32-c429-461b-afa0-ffa8b7fd038e",
+      "__uuid__": "bc9419f3-9df1-4c85-8799-9d695b88c9ee",
       "__expectedType__": "cc.Prefab"
     },
     "_id": ""

@@ -1,13 +1,13 @@
-﻿{
+{
   "ver": "1.1.50",
   "importer": "prefab",
   "imported": true,
-  "uuid": "2d710fc0-c781-4a89-8b85-499a0ec21fa4",
+  "uuid": "e11e08b6-2393-49dd-8b39-84a3b9b12288",
   "files": [
     ".json"
   ],
   "subMetas": {},
   "userData": {
-    "syncNodeName": "prefect"
+    "syncNodeName": "bulletfinal-003"
   }
 }
