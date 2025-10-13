@@ -1,11 +1,9 @@
-// File: GateManager.ts
 import { _decorator, Component, Node, Prefab, instantiate, Vec3, tween, v3, CCInteger } from 'cc';
 import { CoinGateController } from './CoinGateController';
 import { UIManager } from './UIManager';
 
 const { ccclass, property } = _decorator;
 
-// Lớp dùng cho CÁCH 1
 @ccclass('TowerHeroSet')
 export class TowerHeroSet {
     @property(Prefab)
@@ -46,7 +44,7 @@ export class GateManager extends Component {
         this.spawnNextGate();
     }
 
-    // Hàm này được gọi khi cổng được mở, không thay đổi
+    // Hàm này được gọi khi cổng được mở
     public onGateUnlocked(unlockedPoint: Node) {
         this.spawnTowerAtPoint(unlockedPoint);
         UIManager.instance.showHeroSelectionUI();
@@ -54,24 +52,6 @@ export class GateManager extends Component {
 
     // --- CÁC HÀM XỬ LÝ LOGIC ---
 
-    // CÁCH 1: Kích hoạt Hero đã được spawn sẵn
-    public activateHero(heroName: string) {
-        console.log("GateManager đang thực thi theo CÁCH 1: activateHero");
-        UIManager.instance.hideHeroSelectionUI();
-
-        if (this.lastSpawnedTower) {
-            const heroContainer = this.lastSpawnedTower.getChildByName("heroContainer");
-            if (heroContainer) {
-                const heroToActivate = heroContainer.getChildByName(heroName);
-                if (heroToActivate) {
-                    heroToActivate.active = true;
-                } else {
-                    console.error(`CÁCH 1 Lỗi: Không tìm thấy Hero có tên '${heroName}'`);
-                }
-            }
-        }
-        this.processNextStep();
-    }
 
     // CÁCH 2: Tìm Prefab và spawn Hero ngay khi được gọi
     public spawnHeroByName(heroName: string) {
@@ -109,13 +89,9 @@ export class GateManager extends Component {
         }
     }
 
-    // Hàm spawn trụ - Bạn chọn 1 trong 2 cách dưới đây bằng cách bỏ comment
+    // Hàm spawn trụ
     private spawnTowerAtPoint(point: Node) {
         const pointIndex = this.spawnPoints.indexOf(point);
-
-        // === BẠN CHỌN 1 TRONG 2 CÁCH DƯỚI ĐÂY ===
-
-        // CÁCH 2 (ĐANG KÍCH HOẠT): Chỉ spawn trụ
         const towerPrefabToSpawn = this.towerPrefabs[pointIndex];
         if (!towerPrefabToSpawn) return;
         const tower = instantiate(towerPrefabToSpawn);

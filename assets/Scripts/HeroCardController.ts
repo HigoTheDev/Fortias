@@ -1,4 +1,3 @@
-// File: HeroCardController.ts
 import { _decorator, Component, Button } from 'cc';
 import { GateManager } from './GateManager';
 import { CardSelectionManager } from './CardSelectionManager'; // THÊM IMPORT NÀY
@@ -10,7 +9,6 @@ export class HeroCardController extends Component {
     @property({ tooltip: "Tên của Prefab Hero. PHẢI TRÙNG KHỚP 100%." })
     public heroName: string = "";
 
-    // BIẾN MỚI: Sẽ được CardSelectionManager tự động gán
     public cardPrefabName: string = "";
 
     private selectButton: Button = null!;

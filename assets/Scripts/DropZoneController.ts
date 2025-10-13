@@ -1,4 +1,3 @@
-// File: assets/Scripts/DropZoneController.ts
 import { _decorator, Component, Node, Color, Sprite, Collider2D, Contact2DType, IPhysics2DContact, Vec3 } from 'cc';
 import { PlayerSpine } from "./Player/PlayerSpine";
 

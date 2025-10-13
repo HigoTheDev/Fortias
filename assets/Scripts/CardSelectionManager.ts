@@ -100,23 +100,19 @@ export class CardSelectionManager extends Component {
     private spawnRandomCards() {
         this.clearOldCards();
 
-        // 1. Lọc ra danh sách các thẻ CHƯA được sử dụng
         const availableCards = this.cardPrefabs.filter(p => !CardSelectionManager.usedCardNames.has(p.name));
 
         if (availableCards.length < 2) {
             console.warn("Không còn đủ 2 thẻ bài chưa sử dụng để lựa chọn!");
-            // Bạn có thể xử lý logic kết thúc game, reset thẻ, hoặc hiển thị thông báo ở đây
             return;
         }
 
-        // 2. Xáo trộn và chọn 2 thẻ từ danh sách CÓ SẴN
         const shuffledCards = availableCards.sort(() => 0.5 - Math.random());
         const cardsToOffer = shuffledCards.slice(0, 2);
 
         for (const cardPrefab of cardsToOffer) {
             const cardNode = instantiate(cardPrefab);
 
-            // 3. Gán tên của Prefab vào script của thẻ để nó biết "mình là ai"
             const controller = cardNode.getComponent(HeroCardController);
             if (controller) {
                 controller.cardPrefabName = cardPrefab.name;

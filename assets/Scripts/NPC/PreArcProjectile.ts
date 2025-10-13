@@ -57,7 +57,6 @@ export class PreArcProjectile extends Component {
         const vy = vy_linear + vy_parabolic;
         const angleRad = Math.atan2(vy, vx);
         this.node.angle = math.toDegree(angleRad) + 180;
-        // --------------------------------------------------------
 
         t = Math.min(t, 1);
 

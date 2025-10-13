@@ -1,4 +1,3 @@
-// File: UIManager.ts
 import { _decorator, Component, Label, Node, UIOpacity, tween, director, easing } from 'cc';
 import { CardSelectionManager } from './CardSelectionManager';
 
@@ -16,22 +15,25 @@ export class UIManager extends Component {
     coinCountLabel: Label = null!;
 
     // --- Các thuộc tính cho màn hình chọn Hero ---
-    @property({ type: Node, tooltip: "Node cha của giao diện chọn tướng (ví dụ: HeroSelectionUI)." })
+    @property({ type: Node, tooltip: "Node cha của giao diện chọn tướng." })
     heroSelectionUI: Node = null!;
 
     @property({ type: CardSelectionManager, tooltip: "Kéo node chứa script CardSelectionManager vào đây." })
     cardSelectionManager: CardSelectionManager = null!;
 
-    @property({ type: Node, tooltip: "Lớp phủ màu đen để làm mờ nền." })
+    @property({ type: Node, tooltip: "Lớp mờ dành cho Hero Selection." })
     dimOverlay: Node = null!;
 
+    // --- Các thuộc tính cho màn hình kết thúc ---
     @property({ type: Node, tooltip: "Màn hình hiển thị khi chiến thắng." })
     nextLevelScreen: Node = null!;
 
+    @property({type: Node, tooltip: "Lớp mờ dành RIÊNG cho màn hình kết thúc."})
+    endSceneOverlay: Node = null!;
 
+    // --- Các biến trạng thái ---
     private currentCoin: number = 0;
     private currentRuby: number = 0;
-    private dimRequestCount: number = 0;
 
     onLoad() {
         if (UIManager.instance === null) {
@@ -46,13 +48,13 @@ export class UIManager extends Component {
         if (this.heroSelectionUI) this.heroSelectionUI.active = false;
         if (this.dimOverlay) this.dimOverlay.active = false;
         if (this.nextLevelScreen) this.nextLevelScreen.active = false;
+        if (this.endSceneOverlay) this.endSceneOverlay.active = false;
     }
 
     // --- Các hàm cho Giao diện Chọn Hero ---
-
     public showHeroSelectionUI(): void {
         if (this.heroSelectionUI && this.cardSelectionManager) {
-            this.fadeInOverlay();
+            this.fadeInOverlay(this.dimOverlay);
             this.heroSelectionUI.active = true;
             this.cardSelectionManager.showSelection();
         }
@@ -60,31 +62,40 @@ export class UIManager extends Component {
 
     public hideHeroSelectionUI(): void {
         if (this.heroSelectionUI && this.cardSelectionManager) {
-            this.fadeOutOverlay();
+            this.fadeOutOverlay(this.dimOverlay);
             this.cardSelectionManager.hideSelection();
             this.heroSelectionUI.active = false;
         }
     }
 
     // --- Các hàm cho Màn hình Qua Màn (Next Level) ---
-
     public showNextLevelScreen(): void {
-        this.fadeInOverlay();
+        this.fadeInOverlay(this.endSceneOverlay);
         if (this.nextLevelScreen) {
             this.nextLevelScreen.active = true;
         }
     }
 
-    // --- BỔ SUNG: Hàm để ẩn màn hình qua màn ---
     public hideNextLevelScreen(): void {
-        this.fadeOutOverlay();
+        this.fadeOutOverlay(this.endSceneOverlay);
         if (this.nextLevelScreen) {
             this.nextLevelScreen.active = false;
         }
     }
 
-    // --- Các hàm cập nhật Label ---
+    public onNextLevelButtonClicked() {
+        console.log("Chuyển sang màn chơi tiếp theo...");
+        // Ví dụ: director.loadScene('Level_2');
+        this.hideNextLevelScreen();
+    }
 
+    public onGoToMenuButtonClicked() {
+        console.log("Quay về Menu chính...");
+        // Ví dụ: director.loadScene('MainMenu');
+        this.hideNextLevelScreen();
+    }
+
+    // --- Các hàm cập nhật Label ---
     public updateRubyLabel(count: number): void {
         this.rubyCountLabel.string = count.toString();
         this.currentRuby = count;
@@ -95,7 +106,6 @@ export class UIManager extends Component {
         this.currentCoin = count;
     }
 
-    // --- BỔ SUNG: Hàm cập nhật Label với hiệu ứng đếm số ---
     public updateCoinLabelAnimated(targetValue: number, duration: number = 0.5): void {
         const temp = { value: this.currentCoin };
         tween(temp)
@@ -107,44 +117,27 @@ export class UIManager extends Component {
             })
             .call(() => {
                 this.currentCoin = targetValue;
-                this.coinCountLabel.string = targetValue.toString(); // Đảm bảo giá trị cuối cùng chính xác
+                this.coinCountLabel.string = targetValue.toString();
             })
             .start();
     }
 
     // --- Các hàm tiện ích (private) ---
-
-    private fadeInOverlay() {
-        if (!this.dimOverlay) return;
-
-        // Nếu đây là yêu cầu đầu tiên, thì mới thực hiện fade in
-        if (this.dimRequestCount === 0) {
-            console.log("Fade In Overlay");
-            this.dimOverlay.active = true;
-            const opacity = this.dimOverlay.getComponent(UIOpacity) || this.dimOverlay.addComponent(UIOpacity);
+    private fadeInOverlay(overlayNode: Node) {
+        if (overlayNode) {
+            overlayNode.active = true;
+            const opacity = overlayNode.getComponent(UIOpacity) || overlayNode.addComponent(UIOpacity);
             opacity.opacity = 0;
             tween(opacity).to(0.3, { opacity: 200 }, { easing: 'quadOut' }).start();
         }
-        // Luôn tăng bộ đếm
-        this.dimRequestCount++;
     }
 
-    private fadeOutOverlay() {
-        if (!this.dimOverlay) return;
-
-        // Luôn giảm bộ đếm
-        this.dimRequestCount--;
-
-        // Đảm bảo bộ đếm không bị âm
-        if (this.dimRequestCount < 0) this.dimRequestCount = 0;
-
-        // Nếu không còn ai yêu cầu nữa, thì mới thực hiện fade out
-        if (this.dimRequestCount === 0) {
-            console.log("Fade Out Overlay");
-            const opacity = this.dimOverlay.getComponent(UIOpacity);
+    private fadeOutOverlay(overlayNode: Node) {
+        if (overlayNode) {
+            const opacity = overlayNode.getComponent(UIOpacity);
             if (opacity) {
                 tween(opacity).to(0.3, { opacity: 0 }, { easing: 'quadIn' })
-                    .call(() => { if (this.dimOverlay) this.dimOverlay.active = false; })
+                    .call(() => { if (overlayNode) overlayNode.active = false; })
                     .start();
             }
         }
