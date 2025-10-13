@@ -1,4 +1,3 @@
-// File: GameManager.ts
 import { _decorator, Component, Node } from 'cc';
 import { UIManager } from "db://assets/Scripts/UIManager";
 

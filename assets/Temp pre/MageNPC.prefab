@@ -319,7 +319,7 @@
     "fileId": "cbYb724l5FEpYSaPyGlWv2"
   },
   {
-    "__type__": "3b0ac0hpo9GWqSkyXBV+ahR",
+    "__type__": "b3bedeHOotE1LhE0JTazHmV",
     "_name": "",
     "_objFlags": 0,
     "__editorExtras__": {},
@@ -334,7 +334,7 @@
       "__id__": 12
     },
     "projectilePrefab": {
-      "__uuid__": "4e998b21-85f0-4326-bf5a-2937e8436839",
+      "__uuid__": "f8f602c0-b328-427c-8f9b-caea06446032",
       "__expectedType__": "cc.Prefab"
     },
     "aoePrefab": {
@@ -357,7 +357,7 @@
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "7fJIANZ75NW5K7zFVVN6h/"
+    "fileId": "54C/kBdthFvYNa9XNsNtgy"
   },
   {
     "__type__": "cc.PrefabInfo",
