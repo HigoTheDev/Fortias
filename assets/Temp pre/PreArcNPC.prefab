@@ -39,8 +39,8 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -97.63,
-      "y": -189.15,
+      "x": 0,
+      "y": 0,
       "z": 0
     },
     "_lrot": {
@@ -139,7 +139,7 @@
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "e75v+jdQ5FWq1TNtBT0lTo"
+    "fileId": "7df16+HuxB0I5GeWk2JL4k"
   },
   {
     "__type__": "cc.PrefabInfo",
@@ -149,7 +149,7 @@
     "asset": {
       "__id__": 0
     },
-    "fileId": "57/Z7YveBCU4xSFi8LGtzd",
+    "fileId": "82z2NUttlPFZypdf5FsWY2",
     "instance": null,
     "targetOverrides": null,
     "nestedPrefabInstanceRoots": null
@@ -180,7 +180,7 @@
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "05zdo3hZtJYbkQnnViRVPg"
+    "fileId": "b00yusuz9MEJS/kogjr8Ml"
   },
   {
     "__type__": "sp.Skeleton",
@@ -225,10 +225,10 @@
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "94Ys/MhNpODr5KiMaMix6+"
+    "fileId": "d9wdp6Y3tIZ4E9PVs/Qeep"
   },
   {
-    "__type__": "244b0yM059CRJK0+LTMaDYa",
+    "__type__": "879cas1fpxLs5ofEvEZ4dgf",
     "_name": "",
     "_objFlags": 0,
     "__editorExtras__": {},
@@ -243,7 +243,7 @@
       "__id__": 8
     },
     "projectilePrefab": {
-      "__uuid__": "699993e8-8b8d-4080-98f7-a3549d438107",
+      "__uuid__": "e11e08b6-2393-49dd-8b39-84a3b9b12288",
       "__expectedType__": "cc.Prefab"
     },
     "firePoint": {
@@ -251,8 +251,11 @@
     },
     "detectionRange": 250,
     "attackCooldown": 1,
-    "ultimateExplosionPrefab": null,
-    "ultimateAoeRadius": 150,
+    "ultimateExplosionPrefab": {
+      "__uuid__": "7b94d910-6420-45b2-9260-c7463605d578",
+      "__expectedType__": "cc.Prefab"
+    },
+    "ultimateAoeRadius": 75,
     "shotsForUlti": 5,
     "minGoblinsForUlti": 2,
     "ultimateEffectDelay": 0.5,
@@ -260,7 +263,7 @@
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "55kvm2U4BNpZRPkpmV5ff+"
+    "fileId": "d6JbrRIPROZZ/BFrLGOvED"
   },
   {
     "__type__": "cc.PrefabInfo",
@@ -270,7 +273,7 @@
     "asset": {
       "__id__": 0
     },
-    "fileId": "f8SvvbysdMTYwifAnBjFYW",
+    "fileId": "2dxCIlIglNLYulBw2/Z+nU",
     "instance": null,
     "targetOverrides": null
   }

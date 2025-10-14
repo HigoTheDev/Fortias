@@ -39,8 +39,8 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -82.525,
-      "y": 103.347,
+      "x": 0,
+      "y": 0,
       "z": 0
     },
     "_lrot": {
@@ -258,6 +258,7 @@
     "ultimateAoeRadius": 20,
     "shotsForUlti": 5,
     "minGoblinsForUlti": 2,
+    "ultimateEffectDelay": 0.5,
     "_id": ""
   },
   {

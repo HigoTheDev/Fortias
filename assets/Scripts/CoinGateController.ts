@@ -1,4 +1,3 @@
-// File: CoinGateController.ts
 import { _decorator, Component, Node, Label, Collider2D, Contact2DType, IPhysics2DContact, tween, v3, easing, CCFloat, macro, Vec3 } from 'cc';
 import { PlayerSpine } from "db://assets/Scripts/Player/PlayerSpine";
 import { GameManager } from "db://assets/Scripts/GameManager";
@@ -104,9 +103,6 @@ export class CoinGateController extends Component {
         this.flyCoinFromPlayerAndUpdateState();
     }
 
-    /**
-     * ✅ CẬP NHẬT LỚN: Sử dụng phương pháp tween một đối tượng giả lập để đảm bảo đường cong ổn định.
-     */
     private flyCoinFromPlayerAndUpdateState() {
         if (!this.playerScript) return;
 

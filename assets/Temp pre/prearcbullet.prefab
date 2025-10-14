@@ -136,7 +136,7 @@
     "fileId": "7ejujJxvdJJar6qKIc6FN2"
   },
   {
-    "__type__": "f07eagHuJ5D256mfHDDr8B7",
+    "__type__": "c524fY7g0pB7arEokUSl7Wa",
     "_name": "",
     "_objFlags": 0,
     "__editorExtras__": {},
@@ -149,14 +149,14 @@
     },
     "rotationSpeed": 360,
     "impactEffectPrefab": {
-      "__uuid__": "e8b2f87d-54af-459d-a2a2-cb5a692d22a2",
+      "__uuid__": "1c5f800a-dd47-46ed-801d-1eb27812464d",
       "__expectedType__": "cc.Prefab"
     },
     "_id": ""
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "49AimwEOZIT4asMr7Yyzms"
+    "fileId": "95FfcuoM5EdrA5YUby33EB"
   },
   {
     "__type__": "cc.PrefabInfo",

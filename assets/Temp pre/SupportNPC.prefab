@@ -42,8 +42,8 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -101.088,
-      "y": -245.351,
+      "x": 0,
+      "y": 0,
       "z": 0
     },
     "_lrot": {
@@ -352,10 +352,6 @@
     "shotsForUlti": 5,
     "minGoblinsForUlti": 2,
     "maxUltiTargets": 5,
-    "bulletContainer": {
-      "__uuid__": "8eb2a225-cb27-4dc1-9dac-41f57c217e92",
-      "__expectedType__": "cc.Prefab"
-    },
     "_id": ""
   },
   {

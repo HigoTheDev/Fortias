@@ -1,0 +1,13 @@
+﻿{
+  "ver": "1.1.50",
+  "importer": "prefab",
+  "imported": true,
+  "uuid": "e5f2b033-bfd8-4149-b52b-1856c3cfd8f3",
+  "files": [
+    ".json"
+  ],
+  "subMetas": {},
+  "userData": {
+    "syncNodeName": "MageNPC"
+  }
+}

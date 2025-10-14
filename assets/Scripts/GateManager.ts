@@ -1,31 +1,35 @@
-// File: GateManager.ts
 import { _decorator, Component, Node, Prefab, instantiate, Vec3, tween, v3, CCInteger } from 'cc';
 import { CoinGateController } from './CoinGateController';
 import { UIManager } from './UIManager';
 
 const { ccclass, property } = _decorator;
 
+@ccclass('TowerHeroSet')
+export class TowerHeroSet {
+    @property(Prefab)
+    towerPrefab: Prefab = null!;
+
+    @property([Prefab])
+    heroPrefabs: Prefab[] = [];
+}
+
 @ccclass('GateManager')
 export class GateManager extends Component {
-
     public static instance: GateManager = null!;
 
-    @property({ type: Prefab, tooltip: "Prefab của CoinGate để spawn." })
-    public gatePrefab: Prefab = null!;
-
-    @property({ type: [Node], tooltip: "Danh sách các Node vị trí để spawn cổng và trụ THEO THỨ TỰ." })
-    public spawnPoints: Node[] = [];
-
-    @property({ type: [Prefab], tooltip: "Danh sách các Prefab Trụ, THEO THỨ TỰ tương ứng với Spawn Points." })
+    // --- CÁC THUỘC TÍNH CHUNG ---
+    @property(Prefab) public gatePrefab: Prefab = null!;
+    @property([Node]) public spawnPoints: Node[] = [];
+    @property([CCInteger]) public gateCosts: number[] = [3, 50, 60];
+    @property({ type: [Prefab], tooltip: "[CÁCH 2] Danh sách các Prefab Trụ." })
     public towerPrefabs: Prefab[] = [];
 
-    @property({ type: [CCInteger], tooltip: "Danh sách chi phí (số Coin) cho mỗi cổng, THEO THỨ TỰ." })
-    public gateCosts: number[] = [3, 50, 60];
+    @property({ type: [Prefab], tooltip: "[CÁCH 2] DANH SÁCH TỔNG của tất cả Hero Prefab." })
+    public allHeroPrefabs: Prefab[] = [];
 
+    // --- CÁC BIẾN TRẠNG THÁI ---
     private currentSpawnIndex: number = -1;
     private lastSpawnedTower: Node = null;
-
-    // THÊM VÀO: Biến đếm số trụ đã xây
     private towersBuiltCount: number = 0;
 
     onLoad() {
@@ -37,49 +41,72 @@ export class GateManager extends Component {
     }
 
     start() {
-        if (!this.gatePrefab || this.spawnPoints.length === 0) {
-            console.error("Chưa gán Gate Prefab hoặc Spawn Points cho GateManager!");
-            return;
-        }
         this.spawnNextGate();
     }
 
+    // Hàm này được gọi khi cổng được mở
     public onGateUnlocked(unlockedPoint: Node) {
         this.spawnTowerAtPoint(unlockedPoint);
         UIManager.instance.showHeroSelectionUI();
     }
 
-    public onHeroSelected(heroPrefab: Prefab) {
+    // --- CÁC HÀM XỬ LÝ LOGIC ---
+
+
+    // CÁCH 2: Tìm Prefab và spawn Hero ngay khi được gọi
+    public spawnHeroByName(heroName: string) {
+        console.log("GateManager đang thực thi theo CÁCH 2: spawnHeroByName");
         UIManager.instance.hideHeroSelectionUI();
-        this.placeHeroOnTower(heroPrefab);
-        this.towersBuiltCount++;
-        console.log(`LOG: Đã chọn thẻ. Số trụ xây xong: ${this.towersBuiltCount}`);
 
-        if (this.towersBuiltCount >= 3) {
-            console.log("LOG: Đạt đủ 3 trụ. Đang gọi hàm showNextLevelScreen...");
-            UIManager.instance.showNextLevelScreen();
-        } else {
-            this.scheduleOnce(() => { this.spawnNextGate(); }, 1.0);
+        if (!this.lastSpawnedTower) {
+            console.error("CÁCH 2 Lỗi: Không có trụ để đặt Hero lên!");
+            return;
         }
-    }
 
-    private placeHeroOnTower(heroPrefab: Prefab) {
-        if (this.lastSpawnedTower && heroPrefab) {
+        const heroPrefab = this.allHeroPrefabs.find(p => p.name === heroName);
+        if (heroPrefab) {
             const mountPoint = this.lastSpawnedTower.getChildByName("heroMountPoint");
             if (mountPoint) {
                 mountPoint.removeAllChildren();
                 const heroNode = instantiate(heroPrefab);
                 mountPoint.addChild(heroNode);
             } else {
-                console.error(`Không tìm thấy node con tên "heroMountPoint" trên trụ ${this.lastSpawnedTower.name}!`);
+                console.error(`CÁCH 2 Lỗi: Không tìm thấy 'heroMountPoint' trên trụ!`);
             }
+        } else {
+            console.error(`CÁCH 2 Lỗi: Không tìm thấy Prefab Hero tên '${heroName}'!`);
         }
+        this.processNextStep();
+    }
+
+    // Tách logic xử lý bước tiếp theo ra hàm riêng
+    private processNextStep() {
+        this.towersBuiltCount++;
+        if (this.towersBuiltCount >= 3) {
+            UIManager.instance.showNextLevelScreen();
+        } else {
+            this.scheduleOnce(() => { this.spawnNextGate(); }, 1.0);
+        }
+    }
+
+    // Hàm spawn trụ
+    private spawnTowerAtPoint(point: Node) {
+        const pointIndex = this.spawnPoints.indexOf(point);
+        const towerPrefabToSpawn = this.towerPrefabs[pointIndex];
+        if (!towerPrefabToSpawn) return;
+        const tower = instantiate(towerPrefabToSpawn);
+        this.node.addChild(tower);
+        tower.setWorldPosition(point.worldPosition);
+        tower.scale = v3(0, 0, 0);
+        tween(tower).to(0.5, { scale: v3(1, 1, 1) }, { easing: 'backOut' }).start();
+        this.lastSpawnedTower = tower;
+
     }
 
     private spawnNextGate() {
         this.currentSpawnIndex++;
         if (this.currentSpawnIndex >= this.spawnPoints.length) {
-            console.log("🎉 Đã xây tất cả các trụ! Màn chơi hoàn thành!");
+            console.log("🎉 Đã xây tất cả các trụ!");
             return;
         }
         const spawnPoint = this.spawnPoints[this.currentSpawnIndex];
@@ -95,16 +122,5 @@ export class GateManager extends Component {
         if (gateController) {
             gateController.initialize(point, cost);
         }
-    }
-
-    private spawnTowerAtPoint(point: Node) {
-        const pointIndex = this.spawnPoints.indexOf(point);
-        const towerPrefabToSpawn = this.towerPrefabs[pointIndex];
-        const tower = instantiate(towerPrefabToSpawn);
-        this.node.addChild(tower);
-        tower.setWorldPosition(point.worldPosition);
-        tower.scale = v3(0, 0, 0);
-        tween(tower).to(0.5, { scale: v3(1, 1, 1) }, { easing: 'backOut' }).start();
-        this.lastSpawnedTower = tower;
     }
 }

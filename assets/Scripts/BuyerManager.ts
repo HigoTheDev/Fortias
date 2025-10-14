@@ -1,4 +1,3 @@
-// File: assets/Scripts/BuyerManager.ts
 import { _decorator, Component, Node, Prefab, instantiate, Vec3 } from 'cc';
 import { BuyerController } from './BuyerController';
 import { DropZoneController } from './DropZoneController';

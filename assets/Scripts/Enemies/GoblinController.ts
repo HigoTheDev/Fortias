@@ -2,6 +2,7 @@ import { _decorator, Component, Node, Vec3, sp, Collider2D, Contact2DType, IPhys
 import { Fence } from "db://assets/Scripts/Props/Fence";
 import { DoorController } from "db://assets/Scripts/Props/DoorController";
 import { PlayerSpine } from "db://assets/Scripts/Player/PlayerSpine";
+import { RubyManager} from "db://assets/Scripts/Currency/RubyManager";
 
 const { ccclass, property } = _decorator;
 
@@ -197,6 +198,7 @@ export class GoblinController extends Component {
             const rubyNode = instantiate(this.rubyPrefab);
             this.node.parent?.addChild(rubyNode);
             rubyNode.setWorldPosition(this.node.worldPosition);
+            RubyManager.instance.addRuby(rubyNode);
         }
 
         this.spine.color = Color.RED;

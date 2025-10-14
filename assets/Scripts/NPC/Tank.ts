@@ -2,7 +2,7 @@ import { _decorator, Component, Node, sp, Prefab, instantiate, Vec3 } from "cc";
 import { GoblinController } from "db://assets/Scripts/Enemies/GoblinController";
 import { TankProjectile } from "./TankProjectile";
 import { EnemyManager } from "db://assets/Scripts/Enemies/EnemyManager";
-import { GameManager } from "db://assets/Scripts/GameManager"; // ✅ BỔ SUNG 1
+import { GameManager } from "db://assets/Scripts/GameManager";
 
 const { ccclass, property } = _decorator;
 

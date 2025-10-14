@@ -1,4 +1,3 @@
-// File: CoinManager.ts
 import { _decorator, Component, Node, Vec3, Collider2D, Contact2DType, IPhysics2DContact } from 'cc';
 import { CoinController } from './CoinController';
 import { PlayerSpine } from "db://assets/Scripts/Player/PlayerSpine";
